@@ -236,11 +236,9 @@ docker run -it --name=c2 --volumes-from c3 centos:7 /bin/bash
 
 所以：当容器中的网络服务需要被外部机器访问时，可以将容器中提供的服务的端口**映射**到宿主机的端口上。外部机器访问宿主机的该端口，从而间接的访问容器内的服务。这种操作叫【**端口映射**】
 
-<<<<<<< HEAD
 ![](.\imgs\portMap.png)
-=======
-![](D:\Git\GitLocalRepository\Java\10-Docker\imgs\portMap.png)
->>>>>>> e5e4669570559531accb2d50b48e9cadaca48b52
+
+![](.\imgs\portMap.png)
 
 实现步骤：
 
@@ -280,12 +278,9 @@ docker run -it --name=c2 --volumes-from c3 centos:7 /bin/bash
    参数说明：
 
    * **-p 3307:3306**：将容器的 3306 端口映射到宿主机的 3307 端口。
-<<<<<<< HEAD
    * **-v $PWD/conf:/etc/mysql/conf.d**：将主机当前目录（PWD）下的 conf/my.cnf 挂载到容器的 /etc/mysql/my.cnf。配置目录
-=======
    * **-v $PWD/conf:/etc/mysql/conf.d**：将主机当前目录下的 conf/my.cnf 挂载到容器的 /etc/mysql/my.cnf。配置目录
->>>>>>> e5e4669570559531accb2d50b48e9cadaca48b52
-   * **-v $PWD/logs:/logs**：将主机当前目录下的 logs 目录挂载到容器的 /logs。日志目录
+> * **-v $PWD/logs:/logs**：将主机当前目录下的 logs 目录挂载到容器的 /logs。日志目录
    * **-v $PWD/data:/var/lib/mysql** ：将主机当前目录下的data目录挂载到容器的 /var/lib/mysql 。数据目录
    * **-e MYSQL_ROOT_PASSWORD=123456：**初始化 root 用户的密码。
 
