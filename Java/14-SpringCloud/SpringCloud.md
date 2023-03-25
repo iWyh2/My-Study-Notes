@@ -1,4 +1,4 @@
-# SpringCloud
+# Spring Cloud
 
 ![](https://pic3.zhimg.com/v2-810e356b47e09c310a842a11c8fbdb7e_180x120.jpg)
 
@@ -1519,9 +1519,9 @@ Gateway网关是我们服务的守门神，所有微服务的统一入口。
 
 网关的**核心功能特性**：
 
-- 请求路由
-- 权限控制
-- 限流
+- 身份认证，权限校验
+- 服务路由，负载均衡
+- 请求限流
 
 架构图：
 
@@ -1533,12 +1533,12 @@ Gateway网关是我们服务的守门神，所有微服务的统一入口。
 
 **限流**：当请求流量过高时，在网关中按照下流的微服务能够接受的速度来放行请求，避免服务压力过大。
 
-在SpringCloud中网关的实现包括两种：
+**在SpringCloud中网关的实现**包括两种：
 
-- gateway
+- gateway【新】
 - zuul
 
-Zuul是基于Servlet的实现，属于阻塞式编程。而SpringCloudGateway则是基于Spring5中提供的WebFlux，属于响应式编程的实现，具备更好的性能。
+**Zuul是基于Servlet的实现，属于阻塞式编程**。而【**SpringCloudGateway则是基于Spring5中提供的WebFlux，属于响应式编程的实现，具备更好的性能】**
 
 ### 8.2.gateway快速入门
 
@@ -1603,7 +1603,7 @@ spring:
     gateway:
       routes: # 网关路由配置
         - id: user-service # 路由id，自定义，只要唯一即可
-          # uri: http://127.0.0.1:8081 # 路由的目标地址 http就是固定地址
+          # uri: http://127.0.0.1:8081 # uri - 路由的目标地址 http就是固定地址
           uri: lb://userservice # 路由的目标地址 lb就是负载均衡，后面跟服务名称
           predicates: # 路由断言，也就是判断请求是否符合路由规则的条件
             - Path=/user/** # 这个是按照路径匹配，只要以/user/开头就符合要求
@@ -1643,7 +1643,7 @@ spring:
 
 ### 8.3.断言工厂
 
-我们在配置文件中写的断言规则只是字符串，这些字符串会被Predicate Factory读取并处理，转变为路由判断的条件
+我们在配置文件中写的断言规则只是字符串，这些**字符串会被Predicate Factory读取并处理，转变为路由判断的条件**
 
 例如Path=/user/**是按照路径匹配，这个规则是由
 
@@ -1658,18 +1658,18 @@ spring:
 | Between    | 是某两个时间点之前的请求       | - Between=2037-01-20T17:42:47.789-07:00[America/Denver], 2037-01-21T17:42:47.789-07:00[America/Denver] |
 | Cookie     | 请求必须包含某些cookie         | - Cookie=chocolate, ch.p                                     |
 | Header     | 请求必须包含某些header         | - Header=X-Request-Id, \d+                                   |
-| Host       | 请求必须是访问某个host（域名） | - Host=**.somehost.org,**.anotherhost.org                    |
+| Host       | 请求必须是访问某个host（域名） | - Host=.somehost.org,.anotherhost.org                        |
 | Method     | 请求方式必须是指定方式         | - Method=GET,POST                                            |
-| Path       | 请求路径必须符合指定规则       | - Path=/red/{segment},/blue/**                               |
+| **Path**   | 请求路径必须符合指定规则       | - Path=/red/{segment},/blue/**                               |
 | Query      | 请求参数必须包含指定参数       | - Query=name, Jack或者- Query=name                           |
 | RemoteAddr | 请求者的ip必须是指定范围       | - RemoteAddr=192.168.1.1/24                                  |
 | Weight     | 权重处理                       |                                                              |
 
-我们只需要掌握Path这种路由工程就可以了。
+【我们只需要掌握Path这种路由工程就可以了】
 
 ### 8.4.过滤器工厂
 
-GatewayFilter是网关中提供的一种过滤器，可以对进入网关的请求和微服务返回的响应做处理：
+**GatewayFilter**是网关中提供的一种过滤器，可以**对进入网关的请求和微服务返回的响应做处理**：
 
 ![image-20210714212312871](./imgs/image-20210714212312871.png)
 
@@ -1710,7 +1710,7 @@ spring:
 
 #### 8.4.3.默认过滤器
 
-如果要对所有的路由都生效，则可以将过滤器工厂写到default下。格式如下：
+如果要**对所有的路由都生效**，则可以将过滤器工厂写到default下。格式如下：
 
 ```yaml
 spring:
@@ -1743,7 +1743,7 @@ defaultFilters的作用是什么？
 
 #### 8.5.1.全局过滤器作用
 
-全局过滤器的作用也是处理一切进入网关的请求和微服务响应，与GatewayFilter的作用一样。区别在于GatewayFilter通过配置定义，处理逻辑是固定的；而GlobalFilter的逻辑需要自己写代码实现。
+全局过滤器的作用也是处理一切进入网关的请求和微服务响应，与GatewayFilter的作用一样。区别在于**GatewayFilter通过配置定义，处理逻辑是固定的**；而**GlobalFilter的逻辑需要自己写代码实现**。
 
 定义方式是实现GlobalFilter接口。
 
@@ -1825,8 +1825,8 @@ public class AuthorizeFilter implements GlobalFilter {
 
 - 每一个过滤器都必须指定一个int类型的order值，**order值越小，优先级越高，执行顺序越靠前**。
 - GlobalFilter通过实现Ordered接口，或者添加@Order注解来指定order值，由我们自己指定
-- 路由过滤器和defaultFilter的order由Spring指定，默认是按照声明顺序从1递增。
-- 当过滤器的order值一样时，会按照 defaultFilter > 路由过滤器 > GlobalFilter的顺序执行。
+- 路由过滤器和defaultFilter的order由Spring指定，默认是按照声明顺序从1递增
+- **当过滤器的order值一样时，会按照 defaultFilter > 路由过滤器 > GlobalFilter的顺序执行**
 
 详细内容，可以查看源码：
 
@@ -1838,14 +1838,14 @@ public class AuthorizeFilter implements GlobalFilter {
 
 #### 8.6.1.什么是跨域问题
 
-跨域：域名不一致就是跨域，主要包括：
+跨域：**域名不一致就是跨域**，主要包括：
 
-- 域名不同： www.taobao.com 和 www.taobao.org 和 www.jd.com 和 miaosha.jd.com
-- 域名相同，端口不同：localhost:8080和localhost8081
+- **域名不同**： www.taobao.com 和 www.taobao.org 和 www.jd.com 和 miaosha.jd.com
+- **域名相同，端口不同**：localhost:8080和localhost8081
 
-跨域问题：浏览器禁止请求的发起者与服务端发生跨域ajax请求，请求被浏览器拦截的问题
+跨域问题：**浏览器禁止请求的发起者与服务端发生跨域ajax请求，请求被浏览器拦截的问题**
 
-解决方案：CORS，这个以前应该学习过，这里不再赘述了。不知道的小伙伴可以查看https://www.ruanyifeng.com/blog/2016/04/cors.html
+解决方案：CORS，"跨域资源共享"（Cross-origin resource sharing），可以查看https://www.ruanyifeng.com/blog/2016/04/cors.html
 
 #### 8.6.2.模拟跨域问题
 
@@ -1853,13 +1853,24 @@ public class AuthorizeFilter implements GlobalFilter {
 
 ![image-20210714215713563](./imgs/image-20210714215713563.png)
 
-放入tomcat或者nginx这样的web服务器中，启动并访问。
+大致内容：
+
+```html
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+  axios.get("http://localhost:10010/user/1?authorization=admin")
+  .then(resp => console.log(resp.data))
+  .catch(err => console.log(err))
+</script>
+```
+
+放入tomcat或者nginx这样的web服务器中，端口设为8090，启动并访问localhost:8090
 
 可以在浏览器控制台看到下面的错误：
 
 ![image-20210714215832675](./imgs/image-20210714215832675.png)
 
-从localhost:8090访问localhost:10010，端口不同，显然是跨域的请求。
+**从localhost:8090访问localhost:10010，端口不同，显然是跨域的请求**
 
 #### 8.6.3.解决跨域问题
 
@@ -1869,11 +1880,11 @@ public class AuthorizeFilter implements GlobalFilter {
 spring:
   cloud:
     gateway:
-      # 。。。
+      # ...
       globalcors: # 全局的跨域处理
         add-to-simple-url-handler-mapping: true # 解决options请求被拦截问题
         corsConfigurations:
-          '[/**]':
+          '[/**]': # 拦截一切请求
             allowedOrigins: # 允许哪些网站的跨域请求 
               - "http://localhost:8090"
             allowedMethods: # 允许的跨域ajax的请求方式
@@ -1887,14 +1898,22 @@ spring:
             maxAge: 360000 # 这次跨域检测的有效期
 ```
 
+CORS跨域配置的参数：
+
+* 允许哪些域名跨域
+* 允许哪些请求头
+* 允许那洗鞋请求方式
+* 是否使用cookie
+* 有效期
+
 ## 9.Docker
 
 ### 9.1.什么是Docker
 
-微服务虽然具备各种各样的优势，但服务的拆分通用给部署带来了很大的麻烦。
+微服务虽然具备各种各样的优势，但服务的拆分通用给**部署**带来了很大的麻烦。
 
-- 分布式系统中，依赖的组件非常多，不同组件之间部署时往往会产生一些冲突。
-- 在数百上千台服务中重复部署，环境不一定一致，会遇到各种问题
+- 分布式系统中，**依赖的组件非常多，不同组件之间部署时往往会产生一些冲突**
+- 在数百上千台服务中**重复部署，环境不一定一致，会遇到各种问题**
 
 #### 9.1.1.应用部署的环境问题
 
@@ -1905,7 +1924,7 @@ spring:
 
 ![image-20210731141907366](./imgs/image-20210731141907366.png)
 
-例如一个项目中，部署时需要依赖于node.js、Redis、RabbitMQ、MySQL等，这些服务部署时所需要的函数库、依赖项各不相同，甚至会有冲突。给部署带来了极大的困难。
+例如一个项目中，部署时需要依赖于node.js、Redis、RabbitMQ、MySQL等，这些**服务部署时所需要的函数库、依赖项各不相同，甚至会有冲突。给部署带来了极大的困难**
 
 #### 9.1.2.Docker解决依赖兼容问题
 
@@ -1913,7 +1932,7 @@ spring:
 
 Docker为了解决依赖的兼容问题的，采用了两个手段：
 
-- 将应用的Libs（函数库）、Deps（依赖）、配置与应用一起打包
+- **将应用的Libs（函数库）、Deps（依赖）、配置与应用一起打包**
 - 将每个应用放到一个隔离**容器**去运行，避免互相干扰
 
 ![image-20210731142219735](./imgs/image-20210731142219735.png)
@@ -1952,8 +1971,8 @@ Ubuntu和CentOS都是基于Linux内核，无非是系统应用不同，提供的
 
 Docker如何解决不同系统环境的问题？
 
-- Docker将用户程序与所需要调用的系统(比如Ubuntu)函数库一起打包
-- Docker运行到不同操作系统时，直接基于打包的函数库，借助于操作系统的Linux内核来运行
+- Docker**将用户程序与所需要调用的系统(比如Ubuntu)函数库一起打包**
+- Docker运行到不同操作系统时，**直接基于打包的函数库，借助于操作系统的Linux内核来运行**
 
 如图：
 
@@ -1968,7 +1987,7 @@ Docker如何解决大型项目依赖关系复杂，不同组件依赖的兼容�
 
 Docker如何解决开发、测试、生产环境有差异的问题？
 
-- Docker镜像中包含完整运行环境，包括系统函数库，仅依赖系统的Linux内核，因此可以在任意Linux操作系统上运行
+- Docker镜像中包含完整运行环境，包括系统函数库，**仅依赖系统的Linux内核**，因此**可以在任意Linux操作系统上运行**
 
 Docker是一个快速交付应用、运行应用的技术，具备下列优势：
 
@@ -1978,13 +1997,13 @@ Docker是一个快速交付应用、运行应用的技术，具备下列优势�
 
 ### 9.2.Docker和虚拟机的区别
 
-Docker可以让一个应用在任何操作系统中非常方便的运行。而以前我们接触的虚拟机，也能在一个操作系统中，运行另外一个操作系统，保护系统中的任何应用。
+Docker可以让一个应用在任何操作系统中非常方便的运行。而以前我们接触的虚拟机，也能在一个操作系统中，运行另外一个操作系统，保护系统中的任何应用
 
 两者有什么差异呢？
 
-**虚拟机**（virtual machine）是在操作系统中**模拟**硬件设备，然后运行另一个操作系统，比如在 Windows 系统里面运行 Ubuntu 系统，这样就可以运行任意的Ubuntu应用了。
+**虚拟机**（virtual machine）是在操作系统中**模拟硬件设备**，然后运行另一个操作系统，比如在 Windows 系统里面运行 Ubuntu 系统，这样就可以运行任意的Ubuntu应用了
 
-**Docker**仅仅是封装函数库，并没有模拟完整的操作系统，如图：
+**Docker**仅仅是封装函数库，**并没有模拟完整的操作系统**，如图：
 
 ![image-20210731145914960](./imgs/image-20210731145914960.png)
 
@@ -1996,7 +2015,7 @@ Docker可以让一个应用在任何操作系统中非常方便的运行。而�
 
 Docker和虚拟机的差异：
 
-- docker是一个系统进程；虚拟机是在操作系统中的操作系统
+- **docker是一个系统进程**；**虚拟机是在操作系统中的操作系统**
 - docker体积小、启动速度快、性能好；虚拟机体积大、启动速度慢、性能一般
 
 ### 9.3.Docker架构
@@ -7932,3 +7951,5917 @@ node2成为主节点后，会检测集群监控状态，发现：shard-1、shard
 
 ------
 
+
+
+# 二. 高级篇
+
+## 微服务保护
+
+### 1.初识Sentinel
+
+#### 1.1.雪崩问题及解决方案
+
+##### 1.1.1.雪崩问题
+
+微服务中，服务间调用关系错综复杂，一个微服务往往依赖于多个其它微服务。
+
+ ![1533829099748](assets/1533829099748.png)
+
+如图，如果服务提供者I发生了故障，当前的应用的部分业务因为依赖于服务I，因此也会被阻塞。此时，其它不依赖于服务I的业务似乎不受影响。
+
+ ![1533829198240](assets/1533829198240.png)
+
+但是，依赖服务I的业务请求被阻塞，用户不会得到响应，则tomcat的这个线程不会释放，于是越来越多的用户请求到来，越来越多的线程会阻塞：
+
+ ![1533829307389](assets/1533829307389.png)
+
+服务器支持的线程和并发数有限，请求一直阻塞，会导致服务器资源耗尽，从而导致所有其它服务都不可用，那么当前服务也就不可用了。
+
+那么，依赖于当前服务的其它服务随着时间的推移，最终也都会变的不可用，形成级联失败，雪崩就发生了：
+
+![image-20210715172710340](assets/image-20210715172710340.png)
+
+##### 1.1.2.超时处理
+
+解决雪崩问题的常见方式有四种：
+
+• 超时处理：设定超时时间，请求超过一定时间没有响应就返回错误信息，不会无休止等待
+
+![image-20210715172820438](assets/image-20210715172820438.png)
+
+##### 1.1.3.仓壁模式
+
+方案2：仓壁模式
+
+仓壁模式来源于船舱的设计：
+
+![image-20210715172946352](assets/image-20210715172946352.png)
+
+船舱都会被隔板分离为多个独立空间，当船体破损时，只会导致部分空间进入，将故障控制在一定范围内，避免整个船体都被淹没。
+
+于此类似，我们可以限定每个业务能使用的线程数，避免耗尽整个tomcat的资源，因此也叫线程隔离。
+
+![image-20210715173215243](assets/image-20210715173215243.png)
+
+##### 1.1.4.断路器
+
+断路器模式：由**断路器**统计业务执行的异常比例，如果超出阈值则会**熔断**该业务，拦截访问该业务的一切请求。
+
+断路器会统计访问某个服务的请求数量，异常比例：
+
+![image-20210715173327075](assets/image-20210715173327075.png)
+
+当发现访问服务D的请求异常比例过高时，认为服务D有导致雪崩的风险，会拦截访问服务D的一切请求，形成熔断：
+
+![image-20210715173428073](assets/image-20210715173428073.png)
+
+##### 1.1.5.限流
+
+**流量控制**：限制业务访问的QPS，避免服务因流量的突增而故障。
+
+![image-20210715173555158](assets/image-20210715173555158.png)
+
+##### 1.1.6.总结
+
+什么是雪崩问题？
+
+- 微服务之间相互调用，因为调用链中的一个服务故障，引起整个链路都无法访问的情况。
+
+可以认为：
+
+**限流**是对服务的保护，避免因瞬间高并发流量而导致服务故障，进而避免雪崩。是一种**预防**措施。
+
+**超时处理、线程隔离、降级熔断**是在部分服务故障时，将故障控制在一定范围，避免雪崩。是一种**补救**措施。
+
+#### 1.2.服务保护技术对比
+
+在SpringCloud当中支持多种服务保护技术：
+
+- [Netfix Hystrix](https://github.com/Netflix/Hystrix)
+- [Sentinel](https://github.com/alibaba/Sentinel)
+- [Resilience4J](https://github.com/resilience4j/resilience4j)
+
+早期比较流行的是Hystrix框架，但目前国内实用最广泛的还是阿里巴巴的Sentinel框架，这里我们做下对比：
+
+|                | **Sentinel**                                   | **Hystrix**                   |
+| -------------- | ---------------------------------------------- | ----------------------------- |
+| 隔离策略       | 信号量隔离                                     | 线程池隔离/信号量隔离         |
+| 熔断降级策略   | 基于慢调用比例或异常比例                       | 基于失败比率                  |
+| 实时指标实现   | 滑动窗口                                       | 滑动窗口（基于 RxJava）       |
+| 规则配置       | 支持多种数据源                                 | 支持多种数据源                |
+| 扩展性         | 多个扩展点                                     | 插件的形式                    |
+| 基于注解的支持 | 支持                                           | 支持                          |
+| 限流           | 基于 QPS，支持基于调用关系的限流               | 有限的支持                    |
+| 流量整形       | 支持慢启动、匀速排队模式                       | 不支持                        |
+| 系统自适应保护 | 支持                                           | 不支持                        |
+| 控制台         | 开箱即用，可配置规则、查看秒级监控、机器发现等 | 不完善                        |
+| 常见框架的适配 | Servlet、Spring Cloud、Dubbo、gRPC  等         | Servlet、Spring Cloud Netflix |
+
+#### 1.3.Sentinel介绍和安装
+
+##### 1.3.1.初识Sentinel
+
+Sentinel是阿里巴巴开源的一款微服务流量控制组件。官网地址：https://sentinelguard.io/zh-cn/index.html
+
+Sentinel 具有以下特征:
+
+• **丰富的应用场景**：Sentinel 承接了阿里巴巴近 10 年的双十一大促流量的核心场景，例如秒杀（即突发流量控制在系统容量可以承受的范围）、消息削峰填谷、集群流量控制、实时熔断下游不可用应用等。
+
+• **完备的实时监控**：Sentinel 同时提供实时的监控功能。您可以在控制台中看到接入应用的单台机器秒级数据，甚至 500 台以下规模的集群的汇总运行情况。
+
+• **广泛的开源生态**：Sentinel 提供开箱即用的与其它开源框架/库的整合模块，例如与 Spring Cloud、Dubbo、gRPC 的整合。您只需要引入相应的依赖并进行简单的配置即可快速地接入 Sentinel。
+
+• **完善的** **SPI** **扩展点**：Sentinel 提供简单易用、完善的 SPI 扩展接口。您可以通过实现扩展接口来快速地定制逻辑。例如定制规则管理、适配动态数据源等。
+
+##### 1.3.2.安装Sentinel
+
+1）下载
+
+sentinel官方提供了UI控制台，方便我们对系统做限流设置。大家可以在[GitHub](https://github.com/alibaba/Sentinel/releases)下载。
+
+课前资料也提供了下载好的jar包：
+
+![image-20210715174252531](assets/image-20210715174252531.png)
+
+2）运行
+
+将jar包放到任意非中文目录，执行命令：
+
+```sh
+java -jar sentinel-dashboard-1.8.1.jar
+```
+
+如果要修改Sentinel的默认端口、账户、密码，可以通过下列配置：
+
+| **配置项**                       | **默认值** | **说明**   |
+| -------------------------------- | ---------- | ---------- |
+| server.port                      | 8080       | 服务端口   |
+| sentinel.dashboard.auth.username | sentinel   | 默认用户名 |
+| sentinel.dashboard.auth.password | sentinel   | 默认密码   |
+
+例如，修改端口：
+
+```sh
+java -Dserver.port=8090 -jar sentinel-dashboard-1.8.1.jar
+```
+
+3）访问
+
+访问http://localhost:8080页面，就可以看到sentinel的控制台了：
+
+![image-20210715190827846](assets/image-20210715190827846.png)
+
+需要输入账号和密码，默认都是：sentinel
+
+登录后，发现一片空白，什么都没有：
+
+![image-20210715191134448](assets/image-20210715191134448.png)
+
+这是因为我们还没有与微服务整合。
+
+#### 1.4.微服务整合Sentinel
+
+我们在order-service中整合sentinel，并连接sentinel的控制台，步骤如下：
+
+1）引入sentinel依赖
+
+```xml
+<!--sentinel-->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId> 
+    <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+</dependency>
+```
+
+2）配置控制台
+
+修改application.yaml文件，添加下面内容：
+
+```yaml
+server:
+  port: 8088
+spring:
+  cloud: 
+    sentinel:
+      transport:
+        dashboard: localhost:8080
+```
+
+3）访问order-service的任意端点
+
+打开浏览器，访问http://localhost:8088/order/101，这样才能触发sentinel的监控。
+
+然后再访问sentinel的控制台，查看效果：
+
+![image-20210715191241799](assets/image-20210715191241799.png)
+
+### 2.流量控制
+
+雪崩问题虽然有四种方案，但是限流是避免服务因突发的流量而发生故障，是对微服务雪崩问题的预防。我们先学习这种模式。
+
+#### 2.0.簇点链路
+
+当请求进入微服务时，首先会访问DispatcherServlet，然后进入Controller、Service、Mapper，这样的一个调用链就叫做**簇点链路**。簇点链路中被监控的每一个接口就是一个**资源**。
+
+默认情况下sentinel会监控SpringMVC的每一个端点（Endpoint，也就是controller中的方法），因此SpringMVC的每一个端点（Endpoint）就是调用链路中的一个资源。
+
+例如，我们刚才访问的order-service中的OrderController中的端点：/order/{orderId}
+
+![image-20210715191757319](assets/image-20210715191757319.png)
+
+流控、熔断等都是针对簇点链路中的资源来设置的，因此我们可以点击对应资源后面的按钮来设置规则：
+
+- 流控：流量控制
+- 降级：降级熔断
+- 热点：热点参数限流，是限流的一种
+- 授权：请求的权限控制
+
+#### 2.1.快速入门
+
+##### 2.1.1.示例
+
+点击资源/order/{orderId}后面的流控按钮，就可以弹出表单。
+
+![image-20210715191757319](assets/image-20210715191757319.png)
+
+表单中可以填写限流规则，如下：
+
+![image-20210715192010657](assets/image-20210715192010657.png)
+
+其含义是限制 /order/{orderId}这个资源的单机QPS为1，即每秒只允许1次请求，超出的请求会被拦截并报错。
+
+##### 2.1.2.练习
+
+需求：给 /order/{orderId}这个资源设置流控规则，QPS不能超过 5，然后测试。
+
+1）首先在sentinel控制台添加限流规则
+
+![image-20210715192455429](assets/image-20210715192455429.png)
+
+2）利用jmeter测试
+
+如果没有用过jmeter，可以参考[《Jmeter快速入门.md》](./othermds/Jmeter快速入门.md)
+
+课前资料提供了编写好的Jmeter测试样例：
+
+![image-20210715200431615](assets/image-20210715200431615.png)
+
+打开jmeter，导入课前资料提供的测试样例：
+
+![image-20210715200537171](assets/image-20210715200537171.png)
+
+选择：
+
+![image-20210715200635414](assets/image-20210715200635414.png)
+
+20个用户，2秒内运行完，QPS是10，超过了5.
+
+选中`流控入门，QPS<5`右键运行：
+
+![image-20210715200804594](assets/image-20210715200804594.png)
+
+> 注意，不要点击菜单中的执行按钮来运行。
+
+结果：
+
+![image-20210715200853671](assets/image-20210715200853671.png)
+
+可以看到，成功的请求每次只有5个
+
+#### 2.2.流控模式
+
+在添加限流规则时，点击高级选项，可以选择三种**流控模式**：
+
+- 直接：统计当前资源的请求，触发阈值时对当前资源直接限流，也是默认的模式
+- 关联：统计与当前资源相关的另一个资源，触发阈值时，对当前资源限流
+- 链路：统计从指定链路访问到本资源的请求，触发阈值时，对指定链路限流
+
+![image-20210715201827886](assets/image-20210715201827886.png)
+
+快速入门测试的就是直接模式。
+
+##### 2.2.1.关联模式
+
+**关联模式**：统计与当前资源相关的另一个资源，触发阈值时，对当前资源限流
+
+**配置规则**：
+
+![image-20210715202540786](assets/image-20210715202540786.png)
+
+**语法说明**：当/write资源访问量触发阈值时，就会对/read资源限流，避免影响/write资源。
+
+**使用场景**：比如用户支付时需要修改订单状态，同时用户要查询订单。查询和修改操作会争抢数据库锁，产生竞争。业务需求是优先支付和更新订单的业务，因此当修改订单业务触发阈值时，需要对查询订单业务限流。
+
+**需求说明**：
+
+- 在OrderController新建两个端点：/order/query和/order/update，无需实现业务
+
+- 配置流控规则，当/order/ update资源被访问的QPS超过5时，对/order/query请求限流
+
+1）定义/order/query端点，模拟订单查询
+
+```java
+@GetMapping("/query")
+public String queryOrder() {
+    return "查询订单成功";
+}
+```
+
+2）定义/order/update端点，模拟订单更新
+
+```java
+@GetMapping("/update")
+public String updateOrder() {
+    return "更新订单成功";
+}
+```
+
+重启服务，查看sentinel控制台的簇点链路：
+
+![image-20210716101805951](assets/image-20210716101805951.png)
+
+3）配置流控规则
+
+对哪个端点限流，就点击哪个端点后面的按钮。我们是对订单查询/order/query限流，因此点击它后面的按钮：
+
+![image-20210716101934499](assets/image-20210716101934499.png)
+
+在表单中填写流控规则：
+
+![image-20210716102103814](assets/image-20210716102103814.png)
+
+4）在Jmeter测试
+
+选择《流控模式-关联》：
+
+![image-20210716102416266](assets/image-20210716102416266.png)
+
+可以看到1000个用户，100秒，因此QPS为10，超过了我们设定的阈值：5
+
+查看http请求：
+
+![image-20210716102532554](assets/image-20210716102532554.png)
+
+请求的目标是/order/update，这样这个断点就会触发阈值。
+
+但限流的目标是/order/query，我们在浏览器访问，可以发现：
+
+![image-20210716102636030](assets/image-20210716102636030.png)
+
+确实被限流了。
+
+5）总结
+
+![image-20210716103143002](assets/image-20210716103143002.png)
+
+##### 2.2.2.链路模式
+
+**链路模式**：只针对从指定链路访问到本资源的请求做统计，判断是否超过阈值。
+
+**配置示例**：
+
+例如有两条请求链路：
+
+- /test1 --> /common
+
+- /test2 --> /common
+
+如果只希望统计从/test2进入到/common的请求，则可以这样配置：
+
+![image-20210716103536346](assets/image-20210716103536346.png)
+
+**实战案例**
+
+需求：有查询订单和创建订单业务，两者都需要查询商品。针对从查询订单进入到查询商品的请求统计，并设置限流。
+
+步骤：
+
+1. 在OrderService中添加一个queryGoods方法，不用实现业务
+
+2. 在OrderController中，改造/order/query端点，调用OrderService中的queryGoods方法
+
+3. 在OrderController中添加一个/order/save的端点，调用OrderService的queryGoods方法
+
+4. 给queryGoods设置限流规则，从/order/query进入queryGoods的方法限制QPS必须小于2
+
+实现：
+
+###### 1）添加查询商品方法
+
+在order-service服务中，给OrderService类添加一个queryGoods方法：
+
+```java
+public void queryGoods(){
+    System.err.println("查询商品");
+}
+```
+
+###### 2）查询订单时，查询商品
+
+在order-service的OrderController中，修改/order/query端点的业务逻辑：
+
+```java
+@GetMapping("/query")
+public String queryOrder() {
+    // 查询商品
+    orderService.queryGoods();
+    // 查询订单
+    System.out.println("查询订单");
+    return "查询订单成功";
+}
+```
+
+###### 3）新增订单，查询商品
+
+在order-service的OrderController中，修改/order/save端点，模拟新增订单：
+
+```java
+@GetMapping("/save")
+public String saveOrder() {
+    // 查询商品
+    orderService.queryGoods();
+    // 查询订单
+    System.err.println("新增订单");
+    return "新增订单成功";
+}
+```
+
+###### 4）给查询商品添加资源标记
+
+默认情况下，OrderService中的方法是不被Sentinel监控的，需要我们自己通过注解来标记要监控的方法。
+
+给OrderService的queryGoods方法添加@SentinelResource注解：
+
+```java
+@SentinelResource("goods")
+public void queryGoods(){
+    System.err.println("查询商品");
+}
+```
+
+链路模式中，是对不同来源的两个链路做监控。但是sentinel默认会给进入SpringMVC的所有请求设置同一个root资源，会导致链路模式失效。
+
+我们需要关闭这种对SpringMVC的资源聚合，修改order-service服务的application.yml文件：
+
+```yaml
+spring:
+  cloud:
+    sentinel:
+      web-context-unify: false # 关闭context整合
+```
+
+重启服务，访问/order/query和/order/save，可以查看到sentinel的簇点链路规则中，出现了新的资源：
+
+![image-20210716105227163](assets/image-20210716105227163.png)
+
+###### 5）添加流控规则
+
+点击goods资源后面的流控按钮，在弹出的表单中填写下面信息：
+
+![image-20210716105408723](assets/image-20210716105408723.png)
+
+只统计从/order/query进入/goods的资源，QPS阈值为2，超出则被限流。
+
+###### 6）Jmeter测试
+
+选择《流控模式-链路》：
+
+![image-20210716105612312](assets/image-20210716105612312.png)
+
+可以看到这里200个用户，50秒内发完，QPS为4，超过了我们设定的阈值2
+
+一个http请求是访问/order/save：
+
+![image-20210716105812789](assets/image-20210716105812789.png)
+
+运行的结果：
+
+![image-20210716110027064](assets/image-20210716110027064.png)
+
+完全不受影响。
+
+另一个是访问/order/query：
+
+![image-20210716105855951](assets/image-20210716105855951.png)
+
+运行结果：
+
+![image-20210716105956401](assets/image-20210716105956401.png)
+
+每次只有2个通过。
+
+##### 2.2.3.总结
+
+流控模式有哪些？
+
+•直接：对当前资源限流
+
+•关联：高优先级资源触发阈值，对低优先级资源限流。
+
+•链路：阈值统计时，只统计从指定资源进入当前资源的请求，是对请求来源的限流
+
+#### 2.3.流控效果
+
+在流控的高级选项中，还有一个流控效果选项：
+
+![image-20210716110225104](assets/image-20210716110225104.png)
+
+流控效果是指请求达到流控阈值时应该采取的措施，包括三种：
+
+- 快速失败：达到阈值后，新的请求会被立即拒绝并抛出FlowException异常。是默认的处理方式。
+
+- warm up：预热模式，对超出阈值的请求同样是拒绝并抛出异常。但这种模式阈值会动态变化，从一个较小值逐渐增加到最大阈值。
+
+- 排队等待：让所有的请求按照先后次序排队执行，两个请求的间隔不能小于指定时长
+
+##### 2.3.1.warm up
+
+阈值一般是一个微服务能承担的最大QPS，但是一个服务刚刚启动时，一切资源尚未初始化（**冷启动**），如果直接将QPS跑到最大值，可能导致服务瞬间宕机。
+
+warm up也叫**预热模式**，是应对服务冷启动的一种方案。请求阈值初始值是 maxThreshold / coldFactor，持续指定时长后，逐渐提高到maxThreshold值。而coldFactor的默认值是3.
+
+例如，我设置QPS的maxThreshold为10，预热时间为5秒，那么初始阈值就是 10 / 3 ，也就是3，然后在5秒后逐渐增长到10.
+
+![image-20210716110629796](assets/image-20210716110629796.png)
+
+**案例**
+
+需求：给/order/{orderId}这个资源设置限流，最大QPS为10，利用warm up效果，预热时长为5秒
+
+###### 1）配置流控规则：
+
+![image-20210716111012387](assets/image-20210716111012387.png)
+
+###### 2）Jmeter测试
+
+选择《流控效果，warm up》：
+
+![image-20210716111136699](assets/image-20210716111136699.png)
+
+QPS为10.
+
+刚刚启动时，大部分请求失败，成功的只有3个，说明QPS被限定在3：
+
+![image-20210716111303701](assets/image-20210716111303701.png)
+
+随着时间推移，成功比例越来越高：
+
+![image-20210716111404717](assets/image-20210716111404717.png)
+
+到Sentinel控制台查看实时监控：
+
+![image-20210716111526480](assets/image-20210716111526480.png)
+
+一段时间后：
+
+![image-20210716111658541](assets/image-20210716111658541.png)
+
+##### 2.3.2.排队等待
+
+当请求超过QPS阈值时，快速失败和warm up 会拒绝新的请求并抛出异常。
+
+而排队等待则是让所有请求进入一个队列中，然后按照阈值允许的时间间隔依次执行。后来的请求必须等待前面执行完成，如果请求预期的等待时间超出最大时长，则会被拒绝。
+
+工作原理
+
+例如：QPS = 5，意味着每200ms处理一个队列中的请求；timeout = 2000，意味着**预期等待时长**超过2000ms的请求会被拒绝并抛出异常。
+
+那什么叫做预期等待时长呢？
+
+比如现在一下子来了12 个请求，因为每200ms执行一个请求，那么：
+
+- 第6个请求的**预期等待时长** =  200 * （6 - 1） = 1000ms
+- 第12个请求的预期等待时长 = 200 * （12-1） = 2200ms
+
+现在，第1秒同时接收到10个请求，但第2秒只有1个请求，此时QPS的曲线这样的：
+
+![image-20210716113147176](assets/image-20210716113147176.png)
+
+如果使用队列模式做流控，所有进入的请求都要排队，以固定的200ms的间隔执行，QPS会变的很平滑：
+
+![image-20210716113426524](assets/image-20210716113426524.png)
+
+平滑的QPS曲线，对于服务器来说是更友好的。
+
+**案例**
+
+需求：给/order/{orderId}这个资源设置限流，最大QPS为10，利用排队的流控效果，超时时长设置为5s
+
+###### 1）添加流控规则
+
+![image-20210716114048918](assets/image-20210716114048918.png)
+
+###### 2）Jmeter测试
+
+选择《流控效果，队列》：
+
+![image-20210716114243558](assets/image-20210716114243558.png)
+
+QPS为15，已经超过了我们设定的10。
+
+如果是之前的 快速失败、warmup模式，超出的请求应该会直接报错。
+
+但是我们看看队列模式的运行结果：
+
+![image-20210716114429361](assets/image-20210716114429361.png)
+
+全部都通过了。
+
+再去sentinel查看实时监控的QPS曲线：
+
+![image-20210716114522935](assets/image-20210716114522935.png)
+
+QPS非常平滑，一致保持在10，但是超出的请求没有被拒绝，而是放入队列。因此**响应时间**（等待时间）会越来越长。
+
+当队列满了以后，才会有部分请求失败：
+
+![image-20210716114651137](assets/image-20210716114651137.png)
+
+##### 2.3.3.总结
+
+流控效果有哪些？
+
+- 快速失败：QPS超过阈值时，拒绝新的请求
+
+- warm up： QPS超过阈值时，拒绝新的请求；QPS阈值是逐渐提升的，可以避免冷启动时高并发导致服务宕机。
+
+- 排队等待：请求会进入队列，按照阈值允许的时间间隔依次执行请求；如果请求预期等待时长大于超时时间，直接拒绝
+
+#### 2.4.热点参数限流
+
+之前的限流是统计访问某个资源的所有请求，判断是否超过QPS阈值。而热点参数限流是**分别统计参数值相同的请求**，判断是否超过QPS阈值。
+
+##### 2.4.1.全局参数限流
+
+例如，一个根据id查询商品的接口：
+
+![image-20210716115014663](assets/image-20210716115014663.png)
+
+访问/goods/{id}的请求中，id参数值会有变化，热点参数限流会根据参数值分别统计QPS，统计结果：
+
+![image-20210716115131463](assets/image-20210716115131463.png)
+
+当id=1的请求触发阈值被限流时，id值不为1的请求不受影响。
+
+配置示例：
+
+![image-20210716115232426](assets/image-20210716115232426.png)
+
+代表的含义是：对hot这个资源的0号参数（第一个参数）做统计，每1秒**相同参数值**的请求数不能超过5
+
+##### 2.4.2.热点参数限流
+
+刚才的配置中，对查询商品这个接口的所有商品一视同仁，QPS都限定为5.
+
+而在实际开发中，可能部分商品是热点商品，例如秒杀商品，我们希望这部分商品的QPS限制与其它商品不一样，高一些。那就需要配置热点参数限流的高级选项了：
+
+![image-20210716115717523](assets/image-20210716115717523.png)
+
+结合上一个配置，这里的含义是对0号的long类型参数限流，每1秒相同参数的QPS不能超过5，有两个例外：
+
+•如果参数值是100，则每1秒允许的QPS为10
+
+•如果参数值是101，则每1秒允许的QPS为15
+
+##### 2.4.4.案例
+
+**案例需求**：给/order/{orderId}这个资源添加热点参数限流，规则如下：
+
+•默认的热点参数规则是每1秒请求量不超过2
+
+•给102这个参数设置例外：每1秒请求量不超过4
+
+•给103这个参数设置例外：每1秒请求量不超过10
+
+**注意事项**：热点参数限流对默认的SpringMVC资源无效，需要利用@SentinelResource注解标记资源
+
+###### 1）标记资源
+
+给order-service中的OrderController中的/order/{orderId}资源添加注解：
+
+![image-20210716120033572](assets/image-20210716120033572.png)
+
+###### 2）热点参数限流规则
+
+访问该接口，可以看到我们标记的hot资源出现了：
+
+![image-20210716120208509](assets/image-20210716120208509.png)
+
+这里不要点击hot后面的按钮，页面有BUG
+
+点击左侧菜单中**热点规则**菜单：
+
+![image-20210716120319009](assets/image-20210716120319009.png)
+
+点击新增，填写表单：
+
+![image-20210716120536714](assets/image-20210716120536714.png)
+
+###### 3）Jmeter测试
+
+选择《热点参数限流 QPS1》：
+
+![image-20210716120754527](assets/image-20210716120754527.png)
+
+这里发起请求的QPS为5.
+
+包含3个http请求：
+
+普通参数，QPS阈值为2
+
+![image-20210716120840501](assets/image-20210716120840501.png)
+
+运行结果：
+
+![image-20210716121105567](assets/image-20210716121105567.png)
+
+例外项，QPS阈值为4
+
+![image-20210716120900365](assets/image-20210716120900365.png)
+
+运行结果：
+
+![image-20210716121201630](assets/image-20210716121201630.png)
+
+例外项，QPS阈值为10
+
+![image-20210716120919131](assets/image-20210716120919131.png)
+
+运行结果：
+
+![image-20210716121220305](assets/image-20210716121220305.png)
+
+### 3.隔离和降级
+
+限流是一种预防措施，虽然限流可以尽量避免因高并发而引起的服务故障，但服务还会因为其它原因而故障。
+
+而要将这些故障控制在一定范围，避免雪崩，就要靠**线程隔离**（舱壁模式）和**熔断降级**手段了。
+
+**线程隔离**之前讲到过：调用者在调用服务提供者时，给每个调用的请求分配独立线程池，出现故障时，最多消耗这个线程池内资源，避免把调用者的所有资源耗尽。
+
+![image-20210715173215243](assets/image-20210715173215243.png)
+
+**熔断降级**：是在调用方这边加入断路器，统计对服务提供者的调用，如果调用的失败比例过高，则熔断该业务，不允许访问该服务的提供者了。
+
+![image-20210715173428073](assets/image-20210715173428073.png)
+
+可以看到，不管是线程隔离还是熔断降级，都是对**客户端**（调用方）的保护。需要在**调用方** 发起远程调用时做线程隔离、或者服务熔断。
+
+而我们的微服务远程调用都是基于Feign来完成的，因此我们需要将Feign与Sentinel整合，在Feign里面实现线程隔离和服务熔断。
+
+#### 3.1.FeignClient整合Sentinel
+
+SpringCloud中，微服务调用都是通过Feign来实现的，因此做客户端保护必须整合Feign和Sentinel。
+
+##### 3.1.1.修改配置，开启sentinel功能
+
+修改OrderService的application.yml文件，开启Feign的Sentinel功能：
+
+```yaml
+feign:
+  sentinel:
+    enabled: true # 开启feign对sentinel的支持
+```
+
+##### 3.1.2.编写失败降级逻辑
+
+业务失败后，不能直接报错，而应该返回用户一个友好提示或者默认结果，这个就是失败降级逻辑。
+
+给FeignClient编写失败后的降级逻辑
+
+①方式一：FallbackClass，无法对远程调用的异常做处理
+
+②方式二：FallbackFactory，可以对远程调用的异常做处理，我们选择这种
+
+这里我们演示方式二的失败降级处理。
+
+**步骤一**：在feing-api项目中定义类，实现FallbackFactory：
+
+![image-20210716122403502](assets/image-20210716122403502.png)
+
+代码：
+
+```java
+package cn.itcast.feign.clients.fallback;
+
+import cn.itcast.feign.clients.UserClient;
+import cn.itcast.feign.pojo.User;
+import feign.hystrix.FallbackFactory;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class UserClientFallbackFactory implements FallbackFactory<UserClient> {
+    @Override
+    public UserClient create(Throwable throwable) {
+        return new UserClient() {
+            @Override
+            public User findById(Long id) {
+                log.error("查询用户异常", throwable);
+                return new User();
+            }
+        };
+    }
+}
+
+```
+
+**步骤二**：在feing-api项目中的DefaultFeignConfiguration类中将UserClientFallbackFactory注册为一个Bean：
+
+```java
+@Bean
+public UserClientFallbackFactory userClientFallbackFactory(){
+    return new UserClientFallbackFactory();
+}
+```
+
+**步骤三**：在feing-api项目中的UserClient接口中使用UserClientFallbackFactory：
+
+```java
+import cn.itcast.feign.clients.fallback.UserClientFallbackFactory;
+import cn.itcast.feign.pojo.User;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+@FeignClient(value = "userservice", fallbackFactory = UserClientFallbackFactory.class)
+public interface UserClient {
+
+    @GetMapping("/user/{id}")
+    User findById(@PathVariable("id") Long id);
+}
+```
+
+重启后，访问一次订单查询业务，然后查看sentinel控制台，可以看到新的簇点链路：
+
+![image-20210716123705780](assets/image-20210716123705780.png)
+
+##### 3.1.3.总结
+
+Sentinel支持的雪崩解决方案：
+
+- 线程隔离（仓壁模式）
+- 降级熔断
+
+Feign整合Sentinel的步骤：
+
+- 在application.yml中配置：feign.sentienl.enable=true
+- 给FeignClient编写FallbackFactory并注册为Bean
+- 将FallbackFactory配置到FeignClient
+
+#### 3.2.线程隔离（舱壁模式）
+
+##### 3.2.1.线程隔离的实现方式
+
+线程隔离有两种方式实现：
+
+- 线程池隔离
+
+- 信号量隔离（Sentinel默认采用）
+
+如图：
+
+![image-20210716123036937](assets/image-20210716123036937.png)
+
+**线程池隔离**：给每个服务调用业务分配一个线程池，利用线程池本身实现隔离效果
+
+**信号量隔离**：不创建线程池，而是计数器模式，记录业务使用的线程数量，达到信号量上限时，禁止新的请求。
+
+两者的优缺点：
+
+![image-20210716123240518](assets/image-20210716123240518.png)
+
+##### 3.2.2.sentinel的线程隔离
+
+**用法说明**：
+
+在添加限流规则时，可以选择两种阈值类型：
+
+![image-20210716123411217](assets/image-20210716123411217.png)
+
+- QPS：就是每秒的请求数，在快速入门中已经演示过
+
+- 线程数：是该资源能使用用的tomcat线程数的最大值。也就是通过限制线程数量，实现**线程隔离**（舱壁模式）。
+
+**案例需求**：给 order-service服务中的UserClient的查询用户接口设置流控规则，线程数不能超过 2。然后利用jemeter测试。
+
+###### 1）配置隔离规则
+
+选择feign接口后面的流控按钮：
+
+![image-20210716123831992](assets/image-20210716123831992.png)
+
+填写表单：
+
+![image-20210716123936844](assets/image-20210716123936844.png)
+
+###### 2）Jmeter测试
+
+选择《阈值类型-线程数<2》：
+
+![image-20210716124229894](assets/image-20210716124229894.png)
+
+一次发生10个请求，有较大概率并发线程数超过2，而超出的请求会走之前定义的失败降级逻辑。
+
+查看运行结果：
+
+![image-20210716124147820](assets/image-20210716124147820.png)
+
+发现虽然结果都是通过了，不过部分请求得到的响应是降级返回的null信息。
+
+##### 3.2.3.总结
+
+线程隔离的两种手段是？
+
+- 信号量隔离
+
+- 线程池隔离
+
+信号量隔离的特点是？
+
+- 基于计数器模式，简单，开销小
+
+线程池隔离的特点是？
+
+- 基于线程池模式，有额外开销，但隔离控制更强
+
+#### 3.3.熔断降级
+
+熔断降级是解决雪崩问题的重要手段。其思路是由**断路器**统计服务调用的异常比例、慢请求比例，如果超出阈值则会**熔断**该服务。即拦截访问该服务的一切请求；而当服务恢复时，断路器会放行访问该服务的请求。
+
+断路器控制熔断和放行是通过状态机来完成的：
+
+![image-20210716130958518](assets/image-20210716130958518.png)
+
+状态机包括三个状态：
+
+- closed：关闭状态，断路器放行所有请求，并开始统计异常比例、慢请求比例。超过阈值则切换到open状态
+- open：打开状态，服务调用被**熔断**，访问被熔断服务的请求会被拒绝，快速失败，直接走降级逻辑。Open状态5秒后会进入half-open状态
+- half-open：半开状态，放行一次请求，根据执行结果来判断接下来的操作。
+  - 请求成功：则切换到closed状态
+  - 请求失败：则切换到open状态
+
+断路器熔断策略有三种：慢调用、异常比例、异常数
+
+##### 3.3.1.慢调用
+
+**慢调用**：业务的响应时长（RT）大于指定时长的请求认定为慢调用请求。在指定时间内，如果请求数量超过设定的最小数量，慢调用比例大于设定的阈值，则触发熔断。
+
+例如：
+
+![image-20210716145934347](assets/image-20210716145934347.png)
+
+解读：RT超过500ms的调用是慢调用，统计最近10000ms内的请求，如果请求量超过10次，并且慢调用比例不低于0.5，则触发熔断，熔断时长为5秒。然后进入half-open状态，放行一次请求做测试。
+
+**案例**
+
+需求：给 UserClient的查询用户接口设置降级规则，慢调用的RT阈值为50ms，统计时间为1秒，最小请求数量为5，失败阈值比例为0.4，熔断时长为5
+
+###### 1）设置慢调用
+
+修改user-service中的/user/{id}这个接口的业务。通过休眠模拟一个延迟时间：
+
+![image-20210716150234787](assets/image-20210716150234787.png)
+
+此时，orderId=101的订单，关联的是id为1的用户，调用时长为60ms：
+
+![image-20210716150510956](assets/image-20210716150510956.png)
+
+orderId=102的订单，关联的是id为2的用户，调用时长为非常短；
+
+![image-20210716150605208](assets/image-20210716150605208.png)
+
+###### 2）设置熔断规则
+
+下面，给feign接口设置降级规则：
+
+![image-20210716150654094](assets/image-20210716150654094.png)
+
+规则：
+
+![image-20210716150740434](assets/image-20210716150740434.png)
+
+超过50ms的请求都会被认为是慢请求
+
+###### 3）测试
+
+在浏览器访问：http://localhost:8088/order/101，快速刷新5次，可以发现：
+
+![image-20210716150911004](assets/image-20210716150911004.png)
+
+触发了熔断，请求时长缩短至5ms，快速失败了，并且走降级逻辑，返回的null
+
+在浏览器访问：http://localhost:8088/order/102，竟然也被熔断了：
+
+![image-20210716151107785](assets/image-20210716151107785.png)
+
+##### 3.3.2.异常比例、异常数
+
+**异常比例或异常数**：统计指定时间内的调用，如果调用次数超过指定请求数，并且出现异常的比例达到设定的比例阈值（或超过指定异常数），则触发熔断。
+
+例如，一个异常比例设置：
+
+![image-20210716131430682](assets/image-20210716131430682.png)
+
+解读：统计最近1000ms内的请求，如果请求量超过10次，并且异常比例不低于0.4，则触发熔断。
+
+一个异常数设置：
+
+![image-20210716131522912](assets/image-20210716131522912.png)
+
+解读：统计最近1000ms内的请求，如果请求量超过10次，并且异常比例不低于2次，则触发熔断。
+
+**案例**
+
+需求：给 UserClient的查询用户接口设置降级规则，统计时间为1秒，最小请求数量为5，失败阈值比例为0.4，熔断时长为5s
+
+###### 1）设置异常请求
+
+首先，修改user-service中的/user/{id}这个接口的业务。手动抛出异常，以触发异常比例的熔断：
+
+![image-20210716151348183](assets/image-20210716151348183.png)
+
+也就是说，id 为 2时，就会触发异常
+
+###### 2）设置熔断规则
+
+下面，给feign接口设置降级规则：
+
+![image-20210716150654094](assets/image-20210716150654094.png)
+
+规则：
+
+![image-20210716151538785](assets/image-20210716151538785.png)
+
+在5次请求中，只要异常比例超过0.4，也就是有2次以上的异常，就会触发熔断。
+
+######  3）测试
+
+在浏览器快速访问：http://localhost:8088/order/102，快速刷新5次，触发熔断：
+
+![image-20210716151722916](assets/image-20210716151722916.png)
+
+此时，我们去访问本来应该正常的103：
+
+![image-20210716151844817](assets/image-20210716151844817.png)
+
+### 4.授权规则
+
+授权规则可以对请求方来源做判断和控制。
+
+#### 4.1.授权规则
+
+##### 4.1.1.基本规则
+
+授权规则可以对调用方的来源做控制，有白名单和黑名单两种方式。
+
+- 白名单：来源（origin）在白名单内的调用者允许访问
+
+- 黑名单：来源（origin）在黑名单内的调用者不允许访问
+
+点击左侧菜单的授权，可以看到授权规则：
+
+![image-20210716152010750](assets/image-20210716152010750.png)
+
+- 资源名：就是受保护的资源，例如/order/{orderId}
+
+- 流控应用：是来源者的名单，
+  - 如果是勾选白名单，则名单中的来源被许可访问。
+  - 如果是勾选黑名单，则名单中的来源被禁止访问。
+
+比如：
+
+![image-20210716152349191](assets/image-20210716152349191.png)
+
+我们允许请求从gateway到order-service，不允许浏览器访问order-service，那么白名单中就要填写**网关的来源名称（origin）**。
+
+##### 4.1.2.如何获取origin
+
+Sentinel是通过RequestOriginParser这个接口的parseOrigin来获取请求的来源的。
+
+```java
+public interface RequestOriginParser {
+    /**
+     * 从请求request对象中获取origin，获取方式自定义
+     */
+    String parseOrigin(HttpServletRequest request);
+}
+```
+
+这个方法的作用就是从request对象中，获取请求者的origin值并返回。
+
+默认情况下，sentinel不管请求者从哪里来，返回值永远是default，也就是说一切请求的来源都被认为是一样的值default。
+
+因此，我们需要自定义这个接口的实现，让**不同的请求，返回不同的origin**。
+
+例如order-service服务中，我们定义一个RequestOriginParser的实现类：
+
+```java
+package cn.itcast.order.sentinel;
+
+import com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.RequestOriginParser;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+
+@Component
+public class HeaderOriginParser implements RequestOriginParser {
+    @Override
+    public String parseOrigin(HttpServletRequest request) {
+        // 1.获取请求头
+        String origin = request.getHeader("origin");
+        // 2.非空判断
+        if (StringUtils.isEmpty(origin)) {
+            origin = "blank";
+        }
+        return origin;
+    }
+}
+```
+
+我们会尝试从request-header中获取origin值。
+
+##### 4.1.3.给网关添加请求头
+
+既然获取请求origin的方式是从reques-header中获取origin值，我们必须让**所有从gateway路由到微服务的请求都带上origin头**。
+
+这个需要利用之前学习的一个GatewayFilter来实现，AddRequestHeaderGatewayFilter。
+
+修改gateway服务中的application.yml，添加一个defaultFilter：
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - AddRequestHeader=origin,gateway
+      routes:
+       # ...略
+```
+
+这样，从gateway路由的所有请求都会带上origin头，值为gateway。而从其它地方到达微服务的请求则没有这个头。
+
+##### 4.1.4.配置授权规则
+
+接下来，我们添加一个授权规则，放行origin值为gateway的请求。
+
+![image-20210716153250134](assets/image-20210716153250134.png)
+
+配置如下：
+
+![image-20210716153301069](assets/image-20210716153301069.png)
+
+现在，我们直接跳过网关，访问order-service服务：
+
+![image-20210716153348396](assets/image-20210716153348396.png)
+
+通过网关访问：
+
+![image-20210716153434095](assets/image-20210716153434095.png)
+
+#### 4.2.自定义异常结果
+
+默认情况下，发生限流、降级、授权拦截时，都会抛出异常到调用方。异常结果都是flow limmiting（限流）。这样不够友好，无法得知是限流还是降级还是授权拦截。
+
+##### 4.2.1.异常类型
+
+而如果要自定义异常时的返回结果，需要实现BlockExceptionHandler接口：
+
+```java
+public interface BlockExceptionHandler {
+    /**
+     * 处理请求被限流、降级、授权拦截时抛出的异常：BlockException
+     */
+    void handle(HttpServletRequest request, HttpServletResponse response, BlockException e) throws Exception;
+}
+```
+
+这个方法有三个参数：
+
+- HttpServletRequest request：request对象
+- HttpServletResponse response：response对象
+- BlockException e：被sentinel拦截时抛出的异常
+
+这里的BlockException包含多个不同的子类：
+
+| **异常**             | **说明**           |
+| -------------------- | ------------------ |
+| FlowException        | 限流异常           |
+| ParamFlowException   | 热点参数限流的异常 |
+| DegradeException     | 降级异常           |
+| AuthorityException   | 授权规则异常       |
+| SystemBlockException | 系统规则异常       |
+
+##### 4.2.2.自定义异常处理
+
+下面，我们就在order-service定义一个自定义异常处理类：
+
+```java
+package cn.itcast.order.sentinel;
+
+import com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.BlockExceptionHandler;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.alibaba.csp.sentinel.slots.block.authority.AuthorityException;
+import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
+import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
+import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowException;
+import org.springframework.stereotype.Component;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@Component
+public class SentinelExceptionHandler implements BlockExceptionHandler {
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, BlockException e) throws Exception {
+        String msg = "未知异常";
+        int status = 429;
+
+        if (e instanceof FlowException) {
+            msg = "请求被限流了";
+        } else if (e instanceof ParamFlowException) {
+            msg = "请求被热点参数限流";
+        } else if (e instanceof DegradeException) {
+            msg = "请求被降级了";
+        } else if (e instanceof AuthorityException) {
+            msg = "没有权限访问";
+            status = 401;
+        }
+
+        response.setContentType("application/json;charset=utf-8");
+        response.setStatus(status);
+        response.getWriter().println("{\"msg\": " + msg + ", \"status\": " + status + "}");
+    }
+}
+```
+
+重启测试，在不同场景下，会返回不同的异常消息.
+
+限流：
+
+![image-20210716153938887](assets/image-20210716153938887.png)
+
+授权拦截时：
+
+![image-20210716154012736](assets/image-20210716154012736.png)
+
+### 5.规则持久化
+
+现在，sentinel的所有规则都是内存存储，重启后所有规则都会丢失。在生产环境下，我们必须确保这些规则的持久化，避免丢失。
+
+#### 5.1.规则管理模式
+
+规则是否能持久化，取决于规则管理模式，sentinel支持三种规则管理模式：
+
+- 原始模式：Sentinel的默认模式，将规则保存在内存，重启服务会丢失。
+- pull模式
+- push模式
+
+##### 5.1.1.pull模式
+
+pull模式：控制台将配置的规则推送到Sentinel客户端，而客户端会将配置规则保存在本地文件或数据库中。以后会定时去本地文件或数据库中查询，更新本地规则。
+
+![image-20210716154155238](assets/image-20210716154155238.png)
+
+##### 5.1.2.push模式
+
+push模式：控制台将配置规则推送到远程配置中心，例如Nacos。Sentinel客户端监听Nacos，获取配置变更的推送消息，完成本地配置更新。
+
+![image-20210716154215456](assets/image-20210716154215456.png)
+
+#### 5.2.实现push模式
+
+详细步骤可以参考[《sentinel规则持久化.md》](./othermds/sentinel规则持久化.md)
+
+![image-20210716154255466](assets/image-20210716154255466.png)
+
+------
+
+
+
+## 分布式事务
+
+### 1.分布式事务问题
+
+#### 1.1.本地事务
+
+本地事务，也就是传统的**单机事务**。在传统数据库事务中，必须要满足四个原则：
+
+![image-20210724165045186](assets/image-20210724165045186.png)
+
+#### 1.2.分布式事务
+
+**分布式事务**，就是指不是在单个服务或单个数据库架构下，产生的事务，例如：
+
+- 跨数据源的分布式事务
+- 跨服务的分布式事务
+- 综合情况
+
+在数据库水平拆分、服务垂直拆分之后，一个业务操作通常要跨多个数据库、服务才能完成。例如电商行业中比较常见的下单付款案例，包括下面几个行为：
+
+- 创建新订单
+- 扣减商品库存
+- 从用户账户余额扣除金额
+
+完成上面的操作需要访问三个不同的微服务和三个不同的数据库。
+
+![image-20210724165338958](assets/image-20210724165338958.png)
+
+订单的创建、库存的扣减、账户扣款在每一个服务和数据库内是一个本地事务，可以保证ACID原则。
+
+但是当我们把三件事情看做一个"业务"，要满足保证“业务”的原子性，要么所有操作全部成功，要么全部失败，不允许出现部分成功部分失败的现象，这就是**分布式系统下的事务**了。
+
+此时ACID难以满足，这是分布式事务要解决的问题
+
+#### 1.3.演示分布式事务问题
+
+我们通过一个案例来演示分布式事务的问题：
+
+1）**创建数据库，名为seata_demo，然后导入课前资料提供的SQL文件：**
+
+![image-20210724165634571](assets/image-20210724165634571.png) 
+
+2）**导入课前资料提供的微服务：**
+
+![image-20210724165709994](assets/image-20210724165709994.png) 
+
+微服务结构如下：
+
+![image-20210724165729273](assets/image-20210724165729273.png) 
+
+其中：
+
+seata-demo：父工程，负责管理项目依赖
+
+- account-service：账户服务，负责管理用户的资金账户。提供扣减余额的接口
+- storage-service：库存服务，负责管理商品库存。提供扣减库存的接口
+- order-service：订单服务，负责管理订单。创建订单时，需要调用account-service和storage-service
+
+**3）启动nacos、所有微服务**
+
+**4）测试下单功能，发出Post请求：**
+
+请求如下：
+
+```sh
+curl --location --request POST 'http://localhost:8082/order?userId=user202103032042012&commodityCode=100202003032041&count=20&money=200'
+```
+
+如图：
+
+![image-20210724170113404](assets/image-20210724170113404.png)
+
+测试发现，当库存不足时，如果余额已经扣减，并不会回滚，出现了分布式事务问题。
+
+### 2.理论基础
+
+解决分布式事务问题，需要一些分布式系统的基础知识作为理论指导。
+
+#### 2.1.CAP定理
+
+1998年，加州大学的计算机科学家 Eric Brewer 提出，分布式系统有三个指标。
+
+> - Consistency（一致性）
+> - Availability（可用性）
+> - Partition tolerance （分区容错性）
+
+![image-20210724170517944](assets/image-20210724170517944.png)
+
+它们的第一个字母分别是 C、A、P。
+
+Eric Brewer 说，这三个指标不可能同时做到。这个结论就叫做 CAP 定理。
+
+##### 2.1.1.一致性
+
+Consistency（一致性）：用户访问分布式系统中的任意节点，得到的数据必须一致。
+
+比如现在包含两个节点，其中的初始数据是一致的：
+
+![image-20210724170704694](assets/image-20210724170704694.png)
+
+当我们修改其中一个节点的数据时，两者的数据产生了差异：
+
+![image-20210724170735847](assets/image-20210724170735847.png)
+
+要想保住一致性，就必须实现node01 到 node02的数据 同步：
+
+![image-20210724170834855](assets/image-20210724170834855.png)
+
+##### 2.1.2.可用性
+
+Availability （可用性）：用户访问集群中的任意健康节点，必须能得到响应，而不是超时或拒绝。
+
+如图，有三个节点的集群，访问任何一个都可以及时得到响应：
+
+![image-20210724170932072](assets/image-20210724170932072.png)
+
+当有部分节点因为网络故障或其它原因无法访问时，代表节点不可用：
+
+![image-20210724171007516](assets/image-20210724171007516.png)
+
+##### 2.1.3.分区容错
+
+**Partition（分区）**：因为网络故障或其它原因导致分布式系统中的部分节点与其它节点失去连接，形成独立分区。
+
+![image-20210724171041210](assets/image-20210724171041210.png)
+
+**Tolerance（容错）**：在集群出现分区时，整个系统也要持续对外提供服务
+
+##### 2.1.4.矛盾
+
+在分布式系统中，系统间的网络不能100%保证健康，一定会有故障的时候，而服务有必须对外保证服务。因此Partition Tolerance不可避免。
+
+当节点接收到新的数据变更时，就会出现问题了：
+
+![image-20210724171546472](assets/image-20210724171546472.png)
+
+如果此时要保证**一致性**，就必须等待网络恢复，完成数据同步后，整个集群才对外提供服务，服务处于阻塞状态，不可用。
+
+如果此时要保证**可用性**，就不能等待网络恢复，那node01、node02与node03之间就会出现数据不一致。
+
+也就是说，在P一定会出现的情况下，A和C之间只能实现一个。
+
+#### 2.2.BASE理论
+
+BASE理论是对CAP的一种解决思路，包含三个思想：
+
+- **Basically Available** **（基本可用）**：分布式系统在出现故障时，允许损失部分可用性，即保证核心可用。
+- **Soft State（软状态）：**在一定时间内，允许出现中间状态，比如临时的不一致状态。
+- **Eventually Consistent（最终一致性）**：虽然无法保证强一致性，但是在软状态结束后，最终达到数据一致。
+
+#### 2.3.解决分布式事务的思路
+
+分布式事务最大的问题是各个子事务的一致性问题，因此可以借鉴CAP定理和BASE理论，有两种解决思路：
+
+- AP模式：各子事务分别执行和提交，允许出现结果不一致，然后采用弥补措施恢复数据即可，实现最终一致。
+
+- CP模式：各个子事务执行后互相等待，同时提交，同时回滚，达成强一致。但事务等待过程中，处于弱可用状态。
+
+但不管是哪一种模式，都需要在子系统事务之间互相通讯，协调事务状态，也就是需要一个**事务协调者(TC)**：
+
+![image-20210724172123567](assets/image-20210724172123567.png)
+
+这里的子系统事务，称为**分支事务**；有关联的各个分支事务在一起称为**全局事务**。
+
+### 3.初识Seata
+
+Seata是 2019 年 1 月份蚂蚁金服和阿里巴巴共同开源的分布式事务解决方案。致力于提供高性能和简单易用的分布式事务服务，为用户打造一站式的分布式解决方案。
+
+官网地址：http://seata.io/，其中的文档、播客中提供了大量的使用说明、源码分析。
+
+![image-20210724172225817](assets/image-20210724172225817.png)
+
+#### 3.1.Seata的架构
+
+Seata事务管理中有三个重要的角色：
+
+- **TC (Transaction Coordinator) -** **事务协调者：**维护全局和分支事务的状态，协调全局事务提交或回滚。
+
+- **TM (Transaction Manager) -** **事务管理器：**定义全局事务的范围、开始全局事务、提交或回滚全局事务。
+
+- **RM (Resource Manager) -** **资源管理器：**管理分支事务处理的资源，与TC交谈以注册分支事务和报告分支事务的状态，并驱动分支事务提交或回滚。
+
+整体的架构如图：
+
+![image-20210724172326452](assets/image-20210724172326452.png)
+
+Seata基于上述架构提供了四种不同的分布式事务解决方案：
+
+- XA模式：强一致性分阶段事务模式，牺牲了一定的可用性，无业务侵入
+- TCC模式：最终一致的分阶段事务模式，有业务侵入
+- AT模式：最终一致的分阶段事务模式，无业务侵入，也是Seata的默认模式
+- SAGA模式：长事务模式，有业务侵入
+
+无论哪种方案，都离不开TC，也就是事务的协调者。
+
+#### 3.2.部署TC服务
+
+参考课前资料提供的文档《 seata的部署和集成.md 》：
+
+![image-20210724172549013](assets/image-20210724172549013.png)
+
+#### 3.3.微服务集成Seata
+
+我们以order-service为例来演示。
+
+##### 3.3.1.引入依赖
+
+首先，在order-service中引入依赖：
+
+```xml
+<!--seata-->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+    <exclusions>
+        <!--版本较低，1.3.0，因此排除--> 
+        <exclusion>
+            <artifactId>seata-spring-boot-starter</artifactId>
+            <groupId>io.seata</groupId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>io.seata</groupId>
+    <artifactId>seata-spring-boot-starter</artifactId>
+    <!--seata starter 采用1.4.2版本-->
+    <version>${seata.version}</version>
+</dependency>
+```
+
+##### 3.3.2.配置TC地址
+
+在order-service中的application.yml中，配置TC服务信息，通过注册中心nacos，结合服务名称获取TC地址：
+
+```yaml
+seata:
+  registry: # TC服务注册中心的配置，微服务根据这些信息去注册中心获取tc服务地址
+    type: nacos # 注册中心类型 nacos
+    nacos:
+      server-addr: 127.0.0.1:8848 # nacos地址
+      namespace: "" # namespace，默认为空
+      group: DEFAULT_GROUP # 分组，默认是DEFAULT_GROUP
+      application: seata-tc-server # seata服务名称
+      username: nacos
+      password: nacos
+  tx-service-group: seata-demo # 事务组名称
+  service:
+    vgroup-mapping: # 事务组与cluster的映射关系
+      seata-demo: SH
+```
+
+微服务如何根据这些配置寻找TC的地址呢？
+
+我们知道注册到Nacos中的微服务，确定一个具体实例需要四个信息：
+
+- namespace：命名空间
+- group：分组
+- application：服务名
+- cluster：集群名
+
+以上四个信息，在刚才的yaml文件中都能找到：
+
+![image-20210724173654258](assets/image-20210724173654258.png)
+
+namespace为空，就是默认的public
+
+结合起来，TC服务的信息就是：public@DEFAULT_GROUP@seata-tc-server@SH，这样就能确定TC服务集群了。然后就可以去Nacos拉取对应的实例信息了。
+
+##### 3.3.3.其它服务
+
+其它两个微服务也都参考order-service的步骤来做，完全一样。
+
+### 4.动手实践
+
+下面我们就一起学习下Seata中的四种不同的事务模式。
+
+#### 4.1.XA模式
+
+XA 规范 是 X/Open 组织定义的分布式事务处理（DTP，Distributed Transaction Processing）标准，XA 规范 描述了全局的TM与局部的RM之间的接口，几乎所有主流的数据库都对 XA 规范 提供了支持。
+
+##### 4.1.1.两阶段提交
+
+XA是规范，目前主流数据库都实现了这种规范，实现的原理都是基于两阶段提交。
+
+正常情况：
+
+![image-20210724174102768](assets/image-20210724174102768.png)
+
+异常情况：
+
+![image-20210724174234987](assets/image-20210724174234987.png)
+
+一阶段：
+
+- 事务协调者通知每个事物参与者执行本地事务
+- 本地事务执行完成后报告事务执行状态给事务协调者，此时事务不提交，继续持有数据库锁
+
+二阶段：
+
+- 事务协调者基于一阶段的报告来判断下一步操作
+  - 如果一阶段都成功，则通知所有事务参与者，提交事务
+  - 如果一阶段任意一个参与者失败，则通知所有事务参与者回滚事务
+
+##### 4.1.2.Seata的XA模型
+
+Seata对原始的XA模式做了简单的封装和改造，以适应自己的事务模型，基本架构如图：
+
+![image-20210724174424070](assets/image-20210724174424070.png)
+
+RM一阶段的工作：
+
+	① 注册分支事务到TC
+	
+	② 执行分支业务sql但不提交
+	
+	③ 报告执行状态到TC
+
+TC二阶段的工作：
+
+- TC检测各分支事务执行状态
+
+  a.如果都成功，通知所有RM提交事务
+
+  b.如果有失败，通知所有RM回滚事务
+
+RM二阶段的工作：
+
+- 接收TC指令，提交或回滚事务
+
+##### 4.1.3.优缺点
+
+XA模式的优点是什么？
+
+- 事务的强一致性，满足ACID原则。
+- 常用数据库都支持，实现简单，并且没有代码侵入
+
+XA模式的缺点是什么？
+
+- 因为一阶段需要锁定数据库资源，等待二阶段结束才释放，性能较差
+- 依赖关系型数据库实现事务
+
+##### 4.1.4.实现XA模式
+
+Seata的starter已经完成了XA模式的自动装配，实现非常简单，步骤如下：
+
+1）修改application.yml文件（每个参与事务的微服务），开启XA模式：
+
+```yaml
+seata:
+  data-source-proxy-mode: XA
+```
+
+2）给发起全局事务的入口方法添加@GlobalTransactional注解:
+
+本例中是OrderServiceImpl中的create方法.
+
+![image-20210724174859556](assets/image-20210724174859556.png)
+
+3）重启服务并测试
+
+重启order-service，再次测试，发现无论怎样，三个微服务都能成功回滚。
+
+#### 4.2.AT模式
+
+AT模式同样是分阶段提交的事务模型，不过缺弥补了XA模型中资源锁定周期过长的缺陷。
+
+##### 4.2.1.Seata的AT模型
+
+基本流程图：
+
+![image-20210724175327511](assets/image-20210724175327511.png)
+
+阶段一RM的工作：
+
+- 注册分支事务
+- 记录undo-log（数据快照）
+- 执行业务sql并提交
+- 报告事务状态
+
+阶段二提交时RM的工作：
+
+- 删除undo-log即可
+
+阶段二回滚时RM的工作：
+
+- 根据undo-log恢复数据到更新前
+
+##### 4.2.2.流程梳理
+
+我们用一个真实的业务来梳理下AT模式的原理。
+
+比如，现在又一个数据库表，记录用户余额：
+
+| **id** | **money** |
+| ------ | --------- |
+| 1      | 100       |
+
+其中一个分支业务要执行的SQL为：
+
+```sql
+update tb_account set money = money - 10 where id = 1
+```
+
+AT模式下，当前分支事务执行流程如下：
+
+一阶段：
+
+1）TM发起并注册全局事务到TC
+
+2）TM调用分支事务
+
+3）分支事务准备执行业务SQL
+
+4）RM拦截业务SQL，根据where条件查询原始数据，形成快照。
+
+```json
+{
+    "id": 1, "money": 100
+}
+```
+
+5）RM执行业务SQL，提交本地事务，释放数据库锁。此时 `money = 90`
+
+6）RM报告本地事务状态给TC
+
+二阶段：
+
+1）TM通知TC事务结束
+
+2）TC检查分支事务状态
+
+	 a）如果都成功，则立即删除快照
+	
+	 b）如果有分支事务失败，需要回滚。读取快照数据（`{"id": 1, "money": 100}`），将快照恢复到数据库。此时数据库再次恢复为100
+
+流程图：
+
+![image-20210724180722921](assets/image-20210724180722921.png)
+
+##### 4.2.3.AT与XA的区别
+
+简述AT模式与XA模式最大的区别是什么？
+
+- XA模式一阶段不提交事务，锁定资源；AT模式一阶段直接提交，不锁定资源。
+- XA模式依赖数据库机制实现回滚；AT模式利用数据快照实现数据回滚。
+- XA模式强一致；AT模式最终一致
+
+##### 4.2.4.脏写问题
+
+在多线程并发访问AT模式的分布式事务时，有可能出现脏写问题，如图：
+
+![image-20210724181541234](assets/image-20210724181541234.png)
+
+解决思路就是引入了全局锁的概念。在释放DB锁之前，先拿到全局锁。避免同一时刻有另外一个事务来操作当前数据。
+
+![image-20210724181843029](assets/image-20210724181843029.png)
+
+##### 4.2.5.优缺点
+
+AT模式的优点：
+
+- 一阶段完成直接提交事务，释放数据库资源，性能比较好
+- 利用全局锁实现读写隔离
+- 没有代码侵入，框架自动完成回滚和提交
+
+AT模式的缺点：
+
+- 两阶段之间属于软状态，属于最终一致
+- 框架的快照功能会影响性能，但比XA模式要好很多
+
+##### 4.2.6.实现AT模式
+
+AT模式中的快照生成、回滚等动作都是由框架自动完成，没有任何代码侵入，因此实现非常简单。
+
+只不过，AT模式需要一个表来记录全局锁、另一张表来记录数据快照undo_log。
+
+1）导入数据库表，记录全局锁
+
+导入课前资料提供的Sql文件：seata-at.sql，其中lock_table导入到TC服务关联的数据库，undo_log表导入到微服务关联的数据库：
+
+![image-20210724182217272](assets/image-20210724182217272.png)
+
+2）修改application.yml文件，将事务模式修改为AT模式即可：
+
+```yaml
+seata:
+  data-source-proxy-mode: AT # 默认就是AT
+```
+
+3）重启服务并测试
+
+#### 4.3.TCC模式
+
+TCC模式与AT模式非常相似，每阶段都是独立事务，不同的是TCC通过人工编码来实现数据恢复。需要实现三个方法：
+
+- Try：资源的检测和预留； 
+
+- Confirm：完成资源操作业务；要求 Try 成功 Confirm 一定要能成功。
+
+- Cancel：预留资源释放，可以理解为try的反向操作。
+
+##### 4.3.1.流程分析
+
+举例，一个扣减用户余额的业务。假设账户A原来余额是100，需要余额扣减30元。
+
+- **阶段一（ Try ）**：检查余额是否充足，如果充足则冻结金额增加30元，可用余额扣除30
+
+初识余额：
+
+![image-20210724182424907](assets/image-20210724182424907.png)
+
+余额充足，可以冻结：
+
+![image-20210724182457951](assets/image-20210724182457951.png)
+
+此时，总金额 = 冻结金额 + 可用金额，数量依然是100不变。事务直接提交无需等待其它事务。
+
+- **阶段二（Confirm)**：假如要提交（Confirm），则冻结金额扣减30
+
+确认可以提交，不过之前可用金额已经扣减过了，这里只要清除冻结金额就好了：
+
+![image-20210724182706011](assets/image-20210724182706011.png)
+
+此时，总金额 = 冻结金额 + 可用金额 = 0 + 70  = 70元
+
+- **阶段二(Canncel)**：如果要回滚（Cancel），则冻结金额扣减30，可用余额增加30
+
+需要回滚，那么就要释放冻结金额，恢复可用金额：
+
+![image-20210724182810734](assets/image-20210724182810734.png)
+
+##### 4.3.2.Seata的TCC模型
+
+Seata中的TCC模型依然延续之前的事务架构，如图：
+
+![image-20210724182937713](assets/image-20210724182937713.png)
+
+##### 4.3.3.优缺点
+
+TCC模式的每个阶段是做什么的？
+
+- Try：资源检查和预留
+- Confirm：业务执行和提交
+- Cancel：预留资源的释放
+
+TCC的优点是什么？
+
+- 一阶段完成直接提交事务，释放数据库资源，性能好
+- 相比AT模型，无需生成快照，无需使用全局锁，性能最强
+- 不依赖数据库事务，而是依赖补偿操作，可以用于非事务型数据库
+
+TCC的缺点是什么？
+
+- 有代码侵入，需要人为编写try、Confirm和Cancel接口，太麻烦
+- 软状态，事务是最终一致
+- 需要考虑Confirm和Cancel的失败情况，做好幂等处理
+
+##### 4.3.4.事务悬挂和空回滚
+
+###### 1）空回滚
+
+当某分支事务的try阶段**阻塞**时，可能导致全局事务超时而触发二阶段的cancel操作。在未执行try操作时先执行了cancel操作，这时cancel不能做回滚，就是**空回滚**。
+
+如图：
+
+![image-20210724183426891](assets/image-20210724183426891.png)
+
+执行cancel操作时，应当判断try是否已经执行，如果尚未执行，则应该空回滚。
+
+###### 2）业务悬挂
+
+对于已经空回滚的业务，之前被阻塞的try操作恢复，继续执行try，就永远不可能confirm或cancel ，事务一直处于中间状态，这就是**业务悬挂**。
+
+执行try操作时，应当判断cancel是否已经执行过了，如果已经执行，应当阻止空回滚后的try操作，避免悬挂
+
+##### 4.3.5.实现TCC模式
+
+解决空回滚和业务悬挂问题，必须要记录当前事务状态，是在try、还是cancel？
+
+###### 1）思路分析
+
+这里我们定义一张表：
+
+```sql
+CREATE TABLE `account_freeze_tbl` (
+  `xid` varchar(128) NOT NULL,
+  `user_id` varchar(255) DEFAULT NULL COMMENT '用户id',
+  `freeze_money` int(11) unsigned DEFAULT '0' COMMENT '冻结金额',
+  `state` int(1) DEFAULT NULL COMMENT '事务状态，0:try，1:confirm，2:cancel',
+  PRIMARY KEY (`xid`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+
+```
+
+其中：
+
+- xid：是全局事务id
+- freeze_money：用来记录用户冻结金额
+- state：用来记录事务状态
+
+那此时，我们的业务开怎么做呢？
+
+- Try业务：
+  - 记录冻结金额和事务状态到account_freeze表
+  - 扣减account表可用金额
+- Confirm业务
+  - 根据xid删除account_freeze表的冻结记录
+- Cancel业务
+  - 修改account_freeze表，冻结金额为0，state为2
+  - 修改account表，恢复可用金额
+- 如何判断是否空回滚？
+  - cancel业务中，根据xid查询account_freeze，如果为null则说明try还没做，需要空回滚
+- 如何避免业务悬挂？
+  - try业务中，根据xid查询account_freeze ，如果已经存在则证明Cancel已经执行，拒绝执行try业务
+
+接下来，我们改造account-service，利用TCC实现余额扣减功能。
+
+###### 2）声明TCC接口
+
+TCC的Try、Confirm、Cancel方法都需要在接口中基于注解来声明，
+
+我们在account-service项目中的`cn.itcast.account.service`包中新建一个接口，声明TCC三个接口：
+
+```java
+package cn.itcast.account.service;
+
+import io.seata.rm.tcc.api.BusinessActionContext;
+import io.seata.rm.tcc.api.BusinessActionContextParameter;
+import io.seata.rm.tcc.api.LocalTCC;
+import io.seata.rm.tcc.api.TwoPhaseBusinessAction;
+
+@LocalTCC
+public interface AccountTCCService {
+
+    @TwoPhaseBusinessAction(name = "deduct", commitMethod = "confirm", rollbackMethod = "cancel")
+    void deduct(@BusinessActionContextParameter(paramName = "userId") String userId,
+                @BusinessActionContextParameter(paramName = "money")int money);
+
+    boolean confirm(BusinessActionContext ctx);
+
+    boolean cancel(BusinessActionContext ctx);
+}
+```
+
+###### 3）编写实现类
+
+在account-service服务中的`cn.itcast.account.service.impl`包下新建一个类，实现TCC业务：
+
+```java
+package cn.itcast.account.service.impl;
+
+import cn.itcast.account.entity.AccountFreeze;
+import cn.itcast.account.mapper.AccountFreezeMapper;
+import cn.itcast.account.mapper.AccountMapper;
+import cn.itcast.account.service.AccountTCCService;
+import io.seata.core.context.RootContext;
+import io.seata.rm.tcc.api.BusinessActionContext;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Slf4j
+public class AccountTCCServiceImpl implements AccountTCCService {
+
+    @Autowired
+    private AccountMapper accountMapper;
+    @Autowired
+    private AccountFreezeMapper freezeMapper;
+
+    @Override
+    @Transactional
+    public void deduct(String userId, int money) {
+        // 0.获取事务id
+        String xid = RootContext.getXID();
+        // 1.扣减可用余额
+        accountMapper.deduct(userId, money);
+        // 2.记录冻结金额，事务状态
+        AccountFreeze freeze = new AccountFreeze();
+        freeze.setUserId(userId);
+        freeze.setFreezeMoney(money);
+        freeze.setState(AccountFreeze.State.TRY);
+        freeze.setXid(xid);
+        freezeMapper.insert(freeze);
+    }
+
+    @Override
+    public boolean confirm(BusinessActionContext ctx) {
+        // 1.获取事务id
+        String xid = ctx.getXid();
+        // 2.根据id删除冻结记录
+        int count = freezeMapper.deleteById(xid);
+        return count == 1;
+    }
+
+    @Override
+    public boolean cancel(BusinessActionContext ctx) {
+        // 0.查询冻结记录
+        String xid = ctx.getXid();
+        AccountFreeze freeze = freezeMapper.selectById(xid);
+
+        // 1.恢复可用余额
+        accountMapper.refund(freeze.getUserId(), freeze.getFreezeMoney());
+        // 2.将冻结金额清零，状态改为CANCEL
+        freeze.setFreezeMoney(0);
+        freeze.setState(AccountFreeze.State.CANCEL);
+        int count = freezeMapper.updateById(freeze);
+        return count == 1;
+    }
+}
+```
+
+#### 4.4.SAGA模式
+
+Saga 模式是 Seata 即将开源的长事务解决方案，将由蚂蚁金服主要贡献。
+
+其理论基础是Hector & Kenneth  在1987年发表的论文[Sagas](https://microservices.io/patterns/data/saga.html)。
+
+Seata官网对于Saga的指南：https://seata.io/zh-cn/docs/user/saga.html
+
+##### 4.4.1.原理
+
+在 Saga 模式下，分布式事务内有多个参与者，每一个参与者都是一个冲正补偿服务，需要用户根据业务场景实现其正向操作和逆向回滚操作。
+
+分布式事务执行过程中，依次执行各参与者的正向操作，如果所有正向操作均执行成功，那么分布式事务提交。如果任何一个正向操作执行失败，那么分布式事务会去退回去执行前面各参与者的逆向回滚操作，回滚已提交的参与者，使分布式事务回到初始状态。
+
+![image-20210724184846396](assets/image-20210724184846396.png)
+
+Saga也分为两个阶段：
+
+- 一阶段：直接提交本地事务
+- 二阶段：成功则什么都不做；失败则通过编写补偿业务来回滚
+
+##### 4.4.2.优缺点
+
+优点：
+
+- 事务参与者可以基于事件驱动实现异步调用，吞吐高
+- 一阶段直接提交事务，无锁，性能好
+- 不用编写TCC中的三个阶段，实现简单
+
+缺点：
+
+- 软状态持续时间不确定，时效性差
+- 没有锁，没有事务隔离，会有脏写
+
+#### 4.5.四种模式对比
+
+我们从以下几个方面来对比四种实现：
+
+- 一致性：能否保证事务的一致性？强一致还是最终一致？
+- 隔离性：事务之间的隔离性如何？
+- 代码侵入：是否需要对业务代码改造？
+- 性能：有无性能损耗？
+- 场景：常见的业务场景
+
+如图：
+
+![image-20210724185021819](assets/image-20210724185021819.png)
+
+### 5.高可用
+
+Seata的TC服务作为分布式事务核心，一定要保证集群的高可用性。
+
+#### 5.1.高可用架构模型
+
+搭建TC服务集群非常简单，启动多个TC服务，注册到nacos即可。
+
+但集群并不能确保100%安全，万一集群所在机房故障怎么办？所以如果要求较高，一般都会做异地多机房容灾。
+
+比如一个TC集群在上海，另一个TC集群在杭州：
+
+![image-20210724185240957](assets/image-20210724185240957.png)
+
+微服务基于事务组（tx-service-group)与TC集群的映射关系，来查找当前应该使用哪个TC集群。当SH集群故障时，只需要将vgroup-mapping中的映射关系改成HZ。则所有微服务就会切换到HZ的TC集群了。
+
+#### 5.2.实现高可用
+
+具体实现请参考[《seata的部署和集成.md》](./othermds/seata的部署和集成.md)：
+
+![image-20210724172549013](assets/image-20210724172549013.png)
+
+第三章节：
+
+![image-20210724185638729](assets/image-20210724185638729.png)
+
+------
+
+
+
+## 分布式缓存
+
+-- 基于Redis集群解决单机Redis存在的问题
+
+单机的Redis存在四大问题：
+
+![image-20210725144240631](assets/image-20210725144240631.png)
+
+### 1.Redis持久化
+
+Redis有两种持久化方案：
+
+- RDB持久化
+- AOF持久化
+
+#### 1.1.RDB持久化
+
+RDB全称Redis Database Backup file（Redis数据备份文件），也被叫做Redis数据快照。简单来说就是把内存中的所有数据都记录到磁盘中。当Redis实例故障重启后，从磁盘读取快照文件，恢复数据。快照文件称为RDB文件，默认是保存在当前运行目录。
+
+##### 1.1.1.执行时机
+
+RDB持久化在四种情况下会执行：
+
+- 执行save命令
+- 执行bgsave命令
+- Redis停机时
+- 触发RDB条件时
+
+**1）save命令**
+
+执行下面的命令，可以立即执行一次RDB：
+
+![image-20210725144536958](assets/image-20210725144536958.png)
+
+save命令会导致主进程执行RDB，这个过程中其它所有命令都会被阻塞。只有在数据迁移时可能用到。
+
+**2）bgsave命令**
+
+下面的命令可以异步执行RDB：
+
+![image-20210725144725943](assets/image-20210725144725943.png)
+
+这个命令执行后会开启独立进程完成RDB，主进程可以持续处理用户请求，不受影响。
+
+**3）停机时**
+
+Redis停机时会执行一次save命令，实现RDB持久化。
+
+**4）触发RDB条件**
+
+Redis内部有触发RDB的机制，可以在redis.conf文件中找到，格式如下：
+
+```properties
+# 900秒内，如果至少有1个key被修改，则执行bgsave ， 如果是save "" 则表示禁用RDB
+save 900 1  
+save 300 10  
+save 60 10000 
+```
+
+RDB的其它配置也可以在redis.conf文件中设置：
+
+```properties
+# 是否压缩 ,建议不开启，压缩也会消耗cpu，磁盘的话不值钱
+rdbcompression yes
+
+# RDB文件名称
+dbfilename dump.rdb  
+
+# 文件保存的路径目录
+dir ./ 
+```
+
+##### 1.1.2.RDB原理
+
+bgsave开始时会fork主进程得到子进程，子进程共享主进程的内存数据。完成fork后读取内存数据并写入 RDB 文件。
+
+fork采用的是copy-on-write技术：
+
+- 当主进程执行读操作时，访问共享内存；
+- 当主进程执行写操作时，则会拷贝一份数据，执行写操作。
+
+![image-20210725151319695](assets/image-20210725151319695.png)
+
+##### 1.1.3.小结
+
+RDB方式bgsave的基本流程？
+
+- fork主进程得到一个子进程，共享内存空间
+- 子进程读取内存数据并写入新的RDB文件
+- 用新RDB文件替换旧的RDB文件
+
+RDB会在什么时候执行？save 60 1000代表什么含义？
+
+- 默认是服务停止时
+- 代表60秒内至少执行1000次修改则触发RDB
+
+RDB的缺点？
+
+- RDB执行间隔时间长，两次RDB之间写入数据有丢失的风险
+- fork子进程、压缩、写出RDB文件都比较耗时
+
+#### 1.2.AOF持久化
+
+##### 1.2.1.AOF原理
+
+AOF全称为Append Only File（追加文件）。Redis处理的每一个写命令都会记录在AOF文件，可以看做是命令日志文件。
+
+![image-20210725151543640](assets/image-20210725151543640.png)
+
+##### 1.2.2.AOF配置
+
+AOF默认是关闭的，需要修改redis.conf配置文件来开启AOF：
+
+```properties
+# 是否开启AOF功能，默认是no
+appendonly yes
+# AOF文件的名称
+appendfilename "appendonly.aof"
+```
+
+AOF的命令记录的频率也可以通过redis.conf文件来配：
+
+```properties
+# 表示每执行一次写命令，立即记录到AOF文件
+appendfsync always 
+# 写命令执行完先放入AOF缓冲区，然后表示每隔1秒将缓冲区数据写到AOF文件，是默认方案
+appendfsync everysec 
+# 写命令执行完先放入AOF缓冲区，由操作系统决定何时将缓冲区内容写回磁盘
+appendfsync no
+```
+
+三种策略对比：
+
+![image-20210725151654046](assets/image-20210725151654046.png)
+
+##### 1.2.3.AOF文件重写
+
+因为是记录命令，AOF文件会比RDB文件大的多。而且AOF会记录对同一个key的多次写操作，但只有最后一次写操作才有意义。通过执行bgrewriteaof命令，可以让AOF文件执行重写功能，用最少的命令达到相同效果。
+
+![image-20210725151729118](assets/image-20210725151729118.png)
+
+如图，AOF原本有三个命令，但是`set num 123 和 set num 666`都是对num的操作，第二次会覆盖第一次的值，因此第一个命令记录下来没有意义。
+
+所以重写命令后，AOF文件内容就是：`mset name jack num 666`
+
+Redis也会在触发阈值时自动去重写AOF文件。阈值也可以在redis.conf中配置：
+
+```properties
+# AOF文件比上次文件 增长超过多少百分比则触发重写
+auto-aof-rewrite-percentage 100
+# AOF文件体积最小多大以上才触发重写 
+auto-aof-rewrite-min-size 64mb 
+```
+
+#### 1.3.RDB与AOF对比
+
+RDB和AOF各有自己的优缺点，如果对数据安全性要求较高，在实际开发中往往会**结合**两者来使用。
+
+![image-20210725151940515](assets/image-20210725151940515.png)
+
+### 2.Redis主从
+
+#### 2.1.搭建主从架构
+
+单节点Redis的并发能力是有上限的，要进一步提高Redis的并发能力，就需要搭建主从集群，实现读写分离。
+
+![image-20210725152037611](assets/image-20210725152037611.png)
+
+具体搭建流程参考[《Redis集群.md》](./othermds/Redis集群.md)：
+
+![image-20210725152052501](assets/image-20210725152052501.png) 
+
+#### 2.2.主从数据同步原理
+
+##### 2.2.1.全量同步
+
+主从第一次建立连接时，会执行**全量同步**，将master节点的所有数据都拷贝给slave节点，流程：
+
+![image-20210725152222497](assets/image-20210725152222497.png)
+
+这里有一个问题，master如何得知salve是第一次来连接呢？？
+
+有几个概念，可以作为判断依据：
+
+- **Replication Id**：简称replid，是数据集的标记，id一致则说明是同一数据集。每一个master都有唯一的replid，slave则会继承master节点的replid
+- **offset**：偏移量，随着记录在repl_baklog中的数据增多而逐渐增大。slave完成同步时也会记录当前同步的offset。如果slave的offset小于master的offset，说明slave数据落后于master，需要更新。
+
+因此slave做数据同步，必须向master声明自己的replication id 和offset，master才可以判断到底需要同步哪些数据。
+
+因为slave原本也是一个master，有自己的replid和offset，当第一次变成slave，与master建立连接时，发送的replid和offset是自己的replid和offset。
+
+master判断发现slave发送来的replid与自己的不一致，说明这是一个全新的slave，就知道要做全量同步了。
+
+master会将自己的replid和offset都发送给这个slave，slave保存这些信息。以后slave的replid就与master一致了。
+
+因此，**master判断一个节点是否是第一次同步的依据，就是看replid是否一致**。
+
+如图：
+
+![image-20210725152700914](assets/image-20210725152700914.png)
+
+完整流程描述：
+
+- slave节点请求增量同步
+- master节点判断replid，发现不一致，拒绝增量同步
+- master将完整内存数据生成RDB，发送RDB到slave
+- slave清空本地数据，加载master的RDB
+- master将RDB期间的命令记录在repl_baklog，并持续将log中的命令发送给slave
+- slave执行接收到的命令，保持与master之间的同步
+
+##### 2.2.2.增量同步
+
+全量同步需要先做RDB，然后将RDB文件通过网络传输个slave，成本太高了。因此除了第一次做全量同步，其它大多数时候slave与master都是做**增量同步**。
+
+什么是增量同步？就是只更新slave与master存在差异的部分数据。如图：
+
+![image-20210725153201086](assets/image-20210725153201086.png)
+
+那么master怎么知道slave与自己的数据差异在哪里呢?
+
+##### 2.2.3.repl_backlog原理
+
+master怎么知道slave与自己的数据差异在哪里呢?
+
+这就要说到全量同步时的repl_baklog文件了。
+
+这个文件是一个固定大小的数组，只不过数组是环形，也就是说**角标到达数组末尾后，会再次从0开始读写**，这样数组头部的数据就会被覆盖。
+
+repl_baklog中会记录Redis处理过的命令日志及offset，包括master当前的offset，和slave已经拷贝到的offset：
+
+![image-20210725153359022](assets/image-20210725153359022.png) 
+
+slave与master的offset之间的差异，就是salve需要增量拷贝的数据了。
+
+随着不断有数据写入，master的offset逐渐变大，slave也不断的拷贝，追赶master的offset：
+
+![image-20210725153524190](assets/image-20210725153524190.png) 
+
+直到数组被填满：
+
+![image-20210725153715910](assets/image-20210725153715910.png) 
+
+此时，如果有新的数据写入，就会覆盖数组中的旧数据。不过，旧的数据只要是绿色的，说明是已经被同步到slave的数据，即便被覆盖了也没什么影响。因为未同步的仅仅是红色部分。
+
+但是，如果slave出现网络阻塞，导致master的offset远远超过了slave的offset： 
+
+![image-20210725153937031](assets/image-20210725153937031.png) 
+
+如果master继续写入新数据，其offset就会覆盖旧的数据，直到将slave现在的offset也覆盖：
+
+![image-20210725154155984](assets/image-20210725154155984.png) 
+
+棕色框中的红色部分，就是尚未同步，但是却已经被覆盖的数据。此时如果slave恢复，需要同步，却发现自己的offset都没有了，无法完成增量同步了。只能做全量同步。
+
+![image-20210725154216392](assets/image-20210725154216392.png)
+
+#### 2.3.主从同步优化
+
+主从同步可以保证主从数据的一致性，非常重要。
+
+可以从以下几个方面来优化Redis主从就集群：
+
+- 在master中配置repl-diskless-sync yes启用无磁盘复制，避免全量同步时的磁盘IO。
+- Redis单节点上的内存占用不要太大，减少RDB导致的过多磁盘IO
+- 适当提高repl_baklog的大小，发现slave宕机时尽快实现故障恢复，尽可能避免全量同步
+- 限制一个master上的slave节点数量，如果实在是太多slave，则可以采用主-从-从链式结构，减少master压力
+
+主从从架构图：
+
+![image-20210725154405899](assets/image-20210725154405899.png)
+
+#### 2.4.小结
+
+简述全量同步和增量同步区别？
+
+- 全量同步：master将完整内存数据生成RDB，发送RDB到slave。后续命令则记录在repl_baklog，逐个发送给slave。
+- 增量同步：slave提交自己的offset到master，master获取repl_baklog中从offset之后的命令给slave
+
+什么时候执行全量同步？
+
+- slave节点第一次连接master节点时
+- slave节点断开时间太久，repl_baklog中的offset已经被覆盖时
+
+什么时候执行增量同步？
+
+- slave节点断开又恢复，并且在repl_baklog中能找到offset时
+
+### 3.Redis哨兵
+
+Redis提供了哨兵（Sentinel）机制来实现主从集群的自动故障恢复。
+
+#### 3.1.哨兵原理
+
+##### 3.1.1.集群结构和作用
+
+哨兵的结构如图：
+
+![image-20210725154528072](assets/image-20210725154528072.png)
+
+哨兵的作用如下：
+
+- **监控**：Sentinel 会不断检查您的master和slave是否按预期工作
+- **自动故障恢复**：如果master故障，Sentinel会将一个slave提升为master。当故障实例恢复后也以新的master为主
+- **通知**：Sentinel充当Redis客户端的服务发现来源，当集群发生故障转移时，会将最新信息推送给Redis的客户端
+
+##### 3.1.2.集群监控原理
+
+Sentinel基于心跳机制监测服务状态，每隔1秒向集群的每个实例发送ping命令：
+
+•主观下线：如果某sentinel节点发现某实例未在规定时间响应，则认为该实例**主观下线**。
+
+•客观下线：若超过指定数量（quorum）的sentinel都认为该实例主观下线，则该实例**客观下线**。quorum值最好超过Sentinel实例数量的一半。
+
+![image-20210725154632354](assets/image-20210725154632354.png)
+
+##### 3.1.3.集群故障恢复原理
+
+一旦发现master故障，sentinel需要在salve中选择一个作为新的master，选择依据是这样的：
+
+- 首先会判断slave节点与master节点断开时间长短，如果超过指定值（down-after-milliseconds * 10）则会排除该slave节点
+- 然后判断slave节点的slave-priority值，越小优先级越高，如果是0则永不参与选举
+- 如果slave-prority一样，则判断slave节点的offset值，越大说明数据越新，优先级越高
+- 最后是判断slave节点的运行id大小，越小优先级越高。
+
+当选出一个新的master后，该如何实现切换呢？
+
+流程如下：
+
+- sentinel给备选的slave1节点发送slaveof no one命令，让该节点成为master
+- sentinel给所有其它slave发送slaveof 192.168.150.101 7002 命令，让这些slave成为新master的从节点，开始从新的master上同步数据。
+- 最后，sentinel将故障节点标记为slave，当故障节点恢复后会自动成为新的master的slave节点
+
+![image-20210725154816841](assets/image-20210725154816841.png)
+
+##### 3.1.4.小结
+
+Sentinel的三个作用是什么？
+
+- 监控
+- 故障转移
+- 通知
+
+Sentinel如何判断一个redis实例是否健康？
+
+- 每隔1秒发送一次ping命令，如果超过一定时间没有相向则认为是主观下线
+- 如果大多数sentinel都认为实例主观下线，则判定服务下线
+
+故障转移步骤有哪些？
+
+- 首先选定一个slave作为新的master，执行slaveof no one
+- 然后让所有节点都执行slaveof 新master
+- 修改故障节点配置，添加slaveof 新master
+
+#### 3.2.搭建哨兵集群
+
+具体搭建流程参考[《Redis集群.md》](./othermds/Redis集群.md)：
+
+![image-20210725155019276](assets/image-20210725155019276.png) 
+
+#### 3.3.RedisTemplate
+
+在Sentinel集群监管下的Redis主从集群，其节点会因为自动故障转移而发生变化，Redis的客户端必须感知这种变化，及时更新连接信息。Spring的RedisTemplate底层利用lettuce实现了节点的感知和自动切换。
+
+下面，我们通过一个测试来实现RedisTemplate集成哨兵机制。
+
+##### 3.3.1.导入Demo工程
+
+首先，我们引入资料提供的Demo工程：
+
+![image-20210725155124958](assets/image-20210725155124958.png) 
+
+##### 3.3.2.引入依赖
+
+在项目的pom文件中引入依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+##### 3.3.3.配置Redis地址
+
+然后在配置文件application.yml中指定redis的sentinel相关信息：
+
+```java
+spring:
+  redis:
+    sentinel:
+      master: mymaster
+      nodes:
+        - 192.168.150.101:27001
+        - 192.168.150.101:27002
+        - 192.168.150.101:27003
+```
+
+##### 3.3.4.配置读写分离
+
+在项目的启动类中，添加一个新的bean：
+
+```java
+@Bean
+public LettuceClientConfigurationBuilderCustomizer clientConfigurationBuilderCustomizer(){
+    return clientConfigurationBuilder -> clientConfigurationBuilder.readFrom(ReadFrom.REPLICA_PREFERRED);
+}
+```
+
+这个bean中配置的就是读写策略，包括四种：
+
+- MASTER：从主节点读取
+- MASTER_PREFERRED：优先从master节点读取，master不可用才读取replica
+- REPLICA：从slave（replica）节点读取
+- REPLICA _PREFERRED：优先从slave（replica）节点读取，所有的slave都不可用才读取master
+
+### 4.Redis分片集群
+
+#### 4.1.搭建分片集群
+
+主从和哨兵可以解决高可用、高并发读的问题。但是依然有两个问题没有解决：
+
+- 海量数据存储问题
+
+- 高并发写的问题
+
+使用分片集群可以解决上述问题，如图:
+
+![image-20210725155747294](assets/image-20210725155747294.png)
+
+分片集群特征：
+
+- 集群中有多个master，每个master保存不同数据
+
+- 每个master都可以有多个slave节点
+
+- master之间通过ping监测彼此健康状态
+
+- 客户端请求可以访问集群任意节点，最终都会被转发到正确节点
+
+具体搭建流程参考[《Redis集群.md》](./othermds/Redis集群.md)：
+
+![image-20210725155806288](assets/image-20210725155806288.png) 
+
+#### 4.2.散列插槽
+
+##### 4.2.1.插槽原理
+
+Redis会把每一个master节点映射到0~16383共16384个插槽（hash slot）上，查看集群信息时就能看到：
+
+![image-20210725155820320](assets/image-20210725155820320.png)
+
+数据key不是与节点绑定，而是与插槽绑定。redis会根据key的有效部分计算插槽值，分两种情况：
+
+- key中包含"{}"，且“{}”中至少包含1个字符，“{}”中的部分是有效部分
+- key中不包含“{}”，整个key都是有效部分
+
+例如：key是num，那么就根据num计算，如果是{itcast}num，则根据itcast计算。计算方式是利用CRC16算法得到一个hash值，然后对16384取余，得到的结果就是slot值。
+
+![image-20210725155850200](assets/image-20210725155850200.png) 
+
+如图，在7001这个节点执行set a 1时，对a做hash运算，对16384取余，得到的结果是15495，因此要存储到103节点。
+
+到了7003后，执行`get num`时，对num做hash运算，对16384取余，得到的结果是2765，因此需要切换到7001节点
+
+##### 4.2.1.小结
+
+Redis如何判断某个key应该在哪个实例？
+
+- 将16384个插槽分配到不同的实例
+- 根据key的有效部分计算哈希值，对16384取余
+- 余数作为插槽，寻找插槽所在实例即可
+
+如何将同一类数据固定的保存在同一个Redis实例？
+
+- 这一类数据使用相同的有效部分，例如key都以{typeId}为前缀
+
+#### 4.3.集群伸缩
+
+redis-cli --cluster提供了很多操作集群的命令，可以通过下面方式查看：
+
+![image-20210725160138290](assets/image-20210725160138290.png)
+
+比如，添加节点的命令：
+
+![image-20210725160448139](assets/image-20210725160448139.png)
+
+##### 4.3.1.需求分析
+
+需求：向集群中添加一个新的master节点，并向其中存储 num = 10
+
+- 启动一个新的redis实例，端口为7004
+- 添加7004到之前的集群，并作为一个master节点
+- 给7004节点分配插槽，使得num这个key可以存储到7004实例
+
+这里需要两个新的功能：
+
+- 添加一个节点到集群中
+- 将部分插槽分配到新插槽
+
+##### 4.3.2.创建新的redis实例
+
+创建一个文件夹：
+
+```sh
+mkdir 7004
+```
+
+拷贝配置文件：
+
+```sh
+cp redis.conf /7004
+```
+
+修改配置文件：
+
+```sh
+sed /s/6379/7004/g 7004/redis.conf
+```
+
+启动
+
+```sh
+redis-server 7004/redis.conf
+```
+
+##### 4.3.3.添加新节点到redis
+
+添加节点的语法如下：
+
+![image-20210725160448139](assets/image-20210725160448139.png)
+
+执行命令：
+
+```sh
+redis-cli --cluster add-node  192.168.150.101:7004 192.168.150.101:7001
+```
+
+通过命令查看集群状态：
+
+```sh
+redis-cli -p 7001 cluster nodes
+```
+
+如图，7004加入了集群，并且默认是一个master节点：
+
+![image-20210725161007099](assets/image-20210725161007099.png)
+
+但是，可以看到7004节点的插槽数量为0，因此没有任何数据可以存储到7004上
+
+##### 4.3.4.转移插槽
+
+我们要将num存储到7004节点，因此需要先看看num的插槽是多少：
+
+![image-20210725161241793](assets/image-20210725161241793.png)
+
+如上图所示，num的插槽为2765.
+
+我们可以将0~3000的插槽从7001转移到7004，命令格式如下：
+
+![image-20210725161401925](assets/image-20210725161401925.png)
+
+具体命令如下：
+
+建立连接：
+
+![image-20210725161506241](assets/image-20210725161506241.png)
+
+得到下面的反馈：
+
+![image-20210725161540841](assets/image-20210725161540841.png)
+
+询问要移动多少个插槽，我们计划是3000个：
+
+新的问题来了：
+
+![image-20210725161637152](assets/image-20210725161637152.png)
+
+那个node来接收这些插槽？？
+
+显然是7004，那么7004节点的id是多少呢？
+
+![image-20210725161731738](assets/image-20210725161731738.png)
+
+复制这个id，然后拷贝到刚才的控制台后：
+
+![image-20210725161817642](assets/image-20210725161817642.png)
+
+这里询问，你的插槽是从哪里移动过来的？
+
+- all：代表全部，也就是三个节点各转移一部分
+- 具体的id：目标节点的id
+- done：没有了
+
+这里我们要从7001获取，因此填写7001的id：
+
+![image-20210725162030478](assets/image-20210725162030478.png)
+
+填完后，点击done，这样插槽转移就准备好了：
+
+![image-20210725162101228](assets/image-20210725162101228.png)
+
+确认要转移吗？输入yes：
+
+然后，通过命令查看结果：
+
+![image-20210725162145497](assets/image-20210725162145497.png) 
+
+可以看到： 
+
+![image-20210725162224058](assets/image-20210725162224058.png)
+
+目的达成。
+
+#### 4.4.故障转移
+
+集群初识状态是这样的：
+
+![image-20210727161152065](assets/image-20210727161152065.png)
+
+其中7001、7002、7003都是master，我们计划让7002宕机。
+
+##### 4.4.1.自动故障转移
+
+当集群中有一个master宕机会发生什么呢？
+
+直接停止一个redis实例，例如7002：
+
+```sh
+redis-cli -p 7002 shutdown
+```
+
+1）首先是该实例与其它实例失去连接
+
+2）然后是疑似宕机：
+
+![image-20210725162319490](assets/image-20210725162319490.png)
+
+3）最后是确定下线，自动提升一个slave为新的master：
+
+![image-20210725162408979](assets/image-20210725162408979.png)
+
+4）当7002再次启动，就会变为一个slave节点了：
+
+![image-20210727160803386](assets/image-20210727160803386.png)
+
+##### 4.4.2.手动故障转移
+
+利用cluster failover命令可以手动让集群中的某个master宕机，切换到执行cluster failover命令的这个slave节点，实现无感知的数据迁移。其流程如下：
+
+![image-20210725162441407](assets/image-20210725162441407.png)
+
+这种failover命令可以指定三种模式：
+
+- 缺省：默认的流程，如图1~6歩
+- force：省略了对offset的一致性校验
+- takeover：直接执行第5歩，忽略数据一致性、忽略master状态和其它master的意见
+
+**案例需求**：在7002这个slave节点执行手动故障转移，重新夺回master地位
+
+步骤如下：
+
+1）利用redis-cli连接7002这个节点
+
+2）执行cluster failover命令
+
+如图：
+
+![image-20210727160037766](assets/image-20210727160037766.png)
+
+效果：
+
+![image-20210727161152065](assets/image-20210727161152065.png)
+
+#### 4.5.RedisTemplate访问分片集群
+
+RedisTemplate底层同样基于lettuce实现了分片集群的支持，而使用的步骤与哨兵模式基本一致：
+
+1）引入redis的starter依赖
+
+2）配置分片集群地址
+
+3）配置读写分离
+
+与哨兵模式相比，其中只有分片集群的配置方式略有差异，如下：
+
+```yaml
+spring:
+  redis:
+    cluster:
+      nodes:
+        - 192.168.150.101:7001
+        - 192.168.150.101:7002
+        - 192.168.150.101:7003
+        - 192.168.150.101:8001
+        - 192.168.150.101:8002
+        - 192.168.150.101:8003
+```
+
+------
+
+
+
+## 多级缓存
+
+### 1.什么是多级缓存
+
+传统的缓存策略一般是请求到达Tomcat后，先查询Redis，如果未命中则查询数据库，如图：
+
+![image-20210821075259137](assets/image-20210821075259137.png)
+
+存在下面的问题：
+
+•请求要经过Tomcat处理，Tomcat的性能成为整个系统的瓶颈
+
+•Redis缓存失效时，会对数据库产生冲击
+
+多级缓存就是充分利用请求处理的每个环节，分别添加缓存，减轻Tomcat压力，提升服务性能：
+
+- 浏览器访问静态资源时，优先读取浏览器本地缓存
+- 访问非静态资源（ajax查询数据）时，访问服务端
+- 请求到达Nginx后，优先读取Nginx本地缓存
+- 如果Nginx本地缓存未命中，则去直接查询Redis（不经过Tomcat）
+- 如果Redis查询未命中，则查询Tomcat
+- 请求进入Tomcat后，优先查询JVM进程缓存
+- 如果JVM进程缓存未命中，则查询数据库
+
+![image-20210821075558137](assets/image-20210821075558137.png)
+
+在多级缓存架构中，Nginx内部需要编写本地缓存查询、Redis查询、Tomcat查询的业务逻辑，因此这样的nginx服务不再是一个**反向代理服务器**，而是一个编写**业务的Web服务器了**。
+
+因此这样的业务Nginx服务也需要搭建集群来提高并发，再有专门的nginx服务来做反向代理，如图：
+
+![image-20210821080511581](assets/image-20210821080511581.png)
+
+另外，我们的Tomcat服务将来也会部署为集群模式：
+
+![image-20210821080954947](assets/image-20210821080954947.png)
+
+可见，多级缓存的关键有两个：
+
+- 一个是在nginx中编写业务，实现nginx本地缓存、Redis、Tomcat的查询
+
+- 另一个就是在Tomcat中实现JVM进程缓存
+
+其中Nginx编程则会用到OpenResty框架结合Lua这样的语言。
+
+这也是今天课程的难点和重点。
+
+### 2.JVM进程缓存
+
+为了演示多级缓存的案例，我们先准备一个商品查询的业务。
+
+#### 2.1.导入案例
+
+参考[《案例导入说明.md》](./othermds/案例导入说明.md)
+
+![image-20210821081418456](assets/image-20210821081418456.png) 
+
+#### 2.2.初识Caffeine
+
+缓存在日常开发中启动至关重要的作用，由于是存储在内存中，数据的读取速度是非常快的，能大量减少对数据库的访问，减少数据库的压力。我们把缓存分为两类：
+
+- 分布式缓存，例如Redis：
+  - 优点：存储容量更大、可靠性更好、可以在集群间共享
+  - 缺点：访问缓存有网络开销
+  - 场景：缓存数据量较大、可靠性要求较高、需要在集群间共享
+- 进程本地缓存，例如HashMap、GuavaCache：
+  - 优点：读取本地内存，没有网络开销，速度更快
+  - 缺点：存储容量有限、可靠性较低、无法共享
+  - 场景：性能要求较高，缓存数据量较小
+
+我们今天会利用Caffeine框架来实现JVM进程缓存。
+
+**Caffeine**是一个基于Java8开发的，提供了近乎最佳命中率的高性能的本地缓存库。目前Spring内部的缓存使用的就是Caffeine。GitHub地址：https://github.com/ben-manes/caffeine
+
+Caffeine的性能非常好，下图是官方给出的性能对比：
+
+![image-20210821081826399](assets/image-20210821081826399.png)
+
+可以看到Caffeine的性能遥遥领先！
+
+缓存使用的基本API：
+
+```java
+@Test
+void testBasicOps() {
+    // 构建cache对象
+    Cache<String, String> cache = Caffeine.newBuilder().build();
+
+    // 存数据
+    cache.put("gf", "迪丽热巴");
+
+    // 取数据
+    String gf = cache.getIfPresent("gf");
+    System.out.println("gf = " + gf);
+
+    // 取数据，包含两个参数：
+    // 参数一：缓存的key
+    // 参数二：Lambda表达式，表达式参数就是缓存的key，方法体是查询数据库的逻辑
+    // 优先根据key查询JVM缓存，如果未命中，则执行参数二的Lambda表达式
+    String defaultGF = cache.get("defaultGF", key -> {
+        // 根据key去数据库查询数据
+        return "柳岩";
+    });
+    System.out.println("defaultGF = " + defaultGF);
+}
+```
+
+Caffeine既然是缓存的一种，肯定需要有缓存的清除策略，不然的话内存总会有耗尽的时候。
+
+Caffeine提供了三种缓存驱逐策略：
+
+- **基于容量**：设置缓存的数量上限
+
+  ```java
+  // 创建缓存对象
+  Cache<String, String> cache = Caffeine.newBuilder()
+      .maximumSize(1) // 设置缓存大小上限为 1
+      .build();
+  ```
+
+- **基于时间**：设置缓存的有效时间
+
+  ```java
+  // 创建缓存对象
+  Cache<String, String> cache = Caffeine.newBuilder()
+      // 设置缓存有效期为 10 秒，从最后一次写入开始计时 
+      .expireAfterWrite(Duration.ofSeconds(10)) 
+      .build();
+  
+  ```
+
+- **基于引用**：设置缓存为软引用或弱引用，利用GC来回收缓存数据。性能较差，不建议使用。
+
+> **注意**：在默认情况下，当一个缓存元素过期的时候，Caffeine不会自动立即将其清理和驱逐。而是在一次读或写操作后，或者在空闲时间完成对失效数据的驱逐。
+
+#### 2.3.实现JVM进程缓存
+
+##### 2.3.1.需求
+
+利用Caffeine实现下列需求：
+
+- 给根据id查询商品的业务添加缓存，缓存未命中时查询数据库
+- 给根据id查询商品库存的业务添加缓存，缓存未命中时查询数据库
+- 缓存初始大小为100
+- 缓存上限为10000
+
+##### 2.3.2.实现
+
+首先，我们需要定义两个Caffeine的缓存对象，分别保存商品、库存的缓存数据。
+
+在item-service的`com.heima.item.config`包下定义`CaffeineConfig`类：
+
+```java
+package com.heima.item.config;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.heima.item.pojo.Item;
+import com.heima.item.pojo.ItemStock;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class CaffeineConfig {
+
+    @Bean
+    public Cache<Long, Item> itemCache(){
+        return Caffeine.newBuilder()
+                .initialCapacity(100)
+                .maximumSize(10_000)
+                .build();
+    }
+
+    @Bean
+    public Cache<Long, ItemStock> stockCache(){
+        return Caffeine.newBuilder()
+                .initialCapacity(100)
+                .maximumSize(10_000)
+                .build();
+    }
+}
+```
+
+然后，修改item-service中的`com.heima.item.web`包下的ItemController类，添加缓存逻辑：
+
+```java
+@RestController
+@RequestMapping("item")
+public class ItemController {
+
+    @Autowired
+    private IItemService itemService;
+    @Autowired
+    private IItemStockService stockService;
+
+    @Autowired
+    private Cache<Long, Item> itemCache;
+    @Autowired
+    private Cache<Long, ItemStock> stockCache;
+    
+    // ...其它略
+    
+    @GetMapping("/{id}")
+    public Item findById(@PathVariable("id") Long id) {
+        return itemCache.get(id, key -> itemService.query()
+                .ne("status", 3).eq("id", key)
+                .one()
+        );
+    }
+
+    @GetMapping("/stock/{id}")
+    public ItemStock findStockById(@PathVariable("id") Long id) {
+        return stockCache.get(id, key -> stockService.getById(key));
+    }
+}
+```
+
+### 3.Lua语法入门
+
+Nginx编程需要用到Lua语言，因此我们必须先入门Lua的基本语法。
+
+#### 3.1.初识Lua
+
+Lua 是一种轻量小巧的脚本语言，用标准C语言编写并以源代码形式开放， 其设计目的是为了嵌入应用程序中，从而为应用程序提供灵活的扩展和定制功能。官网：https://www.lua.org/
+
+![image-20210821091437975](assets/image-20210821091437975.png)
+
+Lua经常嵌入到C语言开发的程序中，例如游戏开发、游戏插件等。
+
+Nginx本身也是C语言开发，因此也允许基于Lua做拓展。
+
+#### 3.1.HelloWorld
+
+CentOS7默认已经安装了Lua语言环境，所以可以直接运行Lua代码。
+
+1）在Linux虚拟机的任意目录下，新建一个hello.lua文件
+
+![image-20210821091621308](assets/image-20210821091621308.png)
+
+2）添加下面的内容
+
+```lua
+print("Hello World!")  
+```
+
+3）运行
+
+![image-20210821091638140](assets/image-20210821091638140.png)
+
+#### 3.2.变量和循环
+
+学习任何语言必然离不开变量，而变量的声明必须先知道数据的类型。
+
+##### 3.2.1.Lua的数据类型
+
+Lua中支持的常见数据类型包括：
+
+![image-20210821091835406](assets/image-20210821091835406.png)
+
+另外，Lua提供了type()函数来判断一个变量的数据类型：
+
+![image-20210821091904332](assets/image-20210821091904332.png)
+
+##### 3.2.2.声明变量
+
+Lua声明变量的时候无需指定数据类型，而是用local来声明变量为局部变量：
+
+```lua
+-- 声明字符串，可以用单引号或双引号，
+local str = 'hello'
+-- 字符串拼接可以使用 ..
+local str2 = 'hello' .. 'world'
+-- 声明数字
+local num = 21
+-- 声明布尔类型
+local flag = true
+```
+
+Lua中的table类型既可以作为数组，又可以作为Java中的map来使用。数组就是特殊的table，key是数组角标而已：
+
+```lua
+-- 声明数组 ，key为角标的 table
+local arr = {'java', 'python', 'lua'}
+-- 声明table，类似java的map
+local map =  {name='Jack', age=21}
+```
+
+Lua中的数组角标是从1开始，访问的时候与Java中类似：
+
+```lua
+-- 访问数组，lua数组的角标从1开始
+print(arr[1])
+```
+
+Lua中的table可以用key来访问：
+
+```lua
+-- 访问table
+print(map['name'])
+print(map.name)
+```
+
+##### 3.2.3.循环
+
+对于table，我们可以利用for循环来遍历。不过数组和普通table遍历略有差异。
+
+遍历数组：
+
+```lua
+-- 声明数组 key为索引的 table
+local arr = {'java', 'python', 'lua'}
+-- 遍历数组
+for index,value in ipairs(arr) do
+    print(index, value) 
+end
+```
+
+遍历普通table
+
+```lua
+-- 声明map，也就是table
+local map = {name='Jack', age=21}
+-- 遍历table
+for key,value in pairs(map) do
+   print(key, value) 
+end
+```
+
+#### 3.3.条件控制、函数
+
+Lua中的条件控制和函数声明与Java类似。
+
+##### 3.3.1.函数
+
+定义函数的语法：
+
+```lua
+function 函数名( argument1, argument2..., argumentn)
+    -- 函数体
+    return 返回值
+end
+```
+
+例如，定义一个函数，用来打印数组：
+
+```lua
+function printArr(arr)
+    for index, value in ipairs(arr) do
+        print(value)
+    end
+end
+```
+
+##### 3.3.2.条件控制
+
+类似Java的条件控制，例如if、else语法：
+
+```lua
+if(布尔表达式)
+then
+   --[ 布尔表达式为 true 时执行该语句块 --]
+else
+   --[ 布尔表达式为 false 时执行该语句块 --]
+end
+
+```
+
+与java不同，布尔表达式中的逻辑运算是基于英文单词：
+
+![image-20210821092657918](assets/image-20210821092657918.png)
+
+##### 3.3.3.案例
+
+需求：自定义一个函数，可以打印table，当参数为nil时，打印错误信息
+
+```lua
+function printArr(arr)
+    if not arr then
+        print('数组不能为空！')
+    end
+    for index, value in ipairs(arr) do
+        print(value)
+    end
+end
+```
+
+### 4.实现多级缓存
+
+多级缓存的实现离不开Nginx编程，而Nginx编程又离不开OpenResty。
+
+#### 4.1.安装OpenResty
+
+OpenResty® 是一个基于 Nginx的高性能 Web 平台，用于方便地搭建能够处理超高并发、扩展性极高的动态 Web 应用、Web 服务和动态网关。具备下列特点：
+
+- 具备Nginx的完整功能
+- 基于Lua语言进行扩展，集成了大量精良的 Lua 库、第三方模块
+- 允许使用Lua**自定义业务逻辑**、**自定义库**
+
+官方网站： https://openresty.org/cn/
+
+![image-20210821092902946](assets/image-20210821092902946.png)
+
+安装Lua可以参考[《安装OpenResty.md》](./othermds/安装OpenResty.md)
+
+![image-20210821092941139](assets/image-20210821092941139.png) 
+
+#### 4.2.OpenResty快速入门
+
+我们希望达到的多级缓存架构如图：
+
+![yeVDlwtfMx](assets/yeVDlwtfMx.png)
+
+其中：
+
+- windows上的nginx用来做反向代理服务，将前端的查询商品的ajax请求代理到OpenResty集群
+
+- OpenResty集群用来编写多级缓存业务
+
+##### 4.2.1.反向代理流程
+
+现在，商品详情页使用的是假的商品数据。不过在浏览器中，可以看到页面有发起ajax请求查询真实商品数据。
+
+这个请求如下：
+
+![image-20210821093144700](assets/image-20210821093144700.png)
+
+请求地址是localhost，端口是80，就被windows上安装的Nginx服务给接收到了。然后代理给了OpenResty集群：
+
+![image-20210821094447709](assets/image-20210821094447709.png)
+
+我们需要在OpenResty中编写业务，查询商品数据并返回到浏览器。
+
+但是这次，我们先在OpenResty接收请求，返回假的商品数据。
+
+##### 4.2.2.OpenResty监听请求
+
+OpenResty的很多功能都依赖于其目录下的Lua库，需要在nginx.conf中指定依赖库的目录，并导入依赖：
+
+1）添加对OpenResty的Lua模块的加载
+
+修改`/usr/local/openresty/nginx/conf/nginx.conf`文件，在其中的http下面，添加下面代码：
+
+```nginx
+#lua 模块
+lua_package_path "/usr/local/openresty/lualib/?.lua;;";
+#c模块     
+lua_package_cpath "/usr/local/openresty/lualib/?.so;;";  
+```
+
+2）监听/api/item路径
+
+修改`/usr/local/openresty/nginx/conf/nginx.conf`文件，在nginx.conf的server下面，添加对/api/item这个路径的监听：
+
+```nginx
+location  /api/item {
+    # 默认的响应类型
+    default_type application/json;
+    # 响应结果由lua/item.lua文件来决定
+    content_by_lua_file lua/item.lua;
+}
+```
+
+这个监听，就类似于SpringMVC中的`@GetMapping("/api/item")`做路径映射。
+
+而`content_by_lua_file lua/item.lua`则相当于调用item.lua这个文件，执行其中的业务，把结果返回给用户。相当于java中调用service。
+
+##### 4.2.3.编写item.lua
+
+1）在`/usr/loca/openresty/nginx`目录创建文件夹：lua
+
+![image-20210821100755080](assets/image-20210821100755080.png)
+
+2）在`/usr/loca/openresty/nginx/lua`文件夹下，新建文件：item.lua
+
+![image-20210821100801756](assets/image-20210821100801756.png)
+
+3）编写item.lua，返回假数据
+
+item.lua中，利用ngx.say()函数返回数据到Response中
+
+```lua
+ngx.say('{"id":10001,"name":"SALSA AIR","title":"RIMOWA 21寸托运箱拉杆箱 SALSA AIR系列果绿色 820.70.36.4","price":17900,"image":"https://m.360buyimg.com/mobilecms/s720x720_jfs/t6934/364/1195375010/84676/e9f2c55f/597ece38N0ddcbc77.jpg!q70.jpg.webp","category":"拉杆箱","brand":"RIMOWA","spec":"","status":1,"createTime":"2019-04-30T16:00:00.000+00:00","updateTime":"2019-04-30T16:00:00.000+00:00","stock":2999,"sold":31290}')
+```
+
+4）重新加载配置
+
+```sh
+nginx -s reload
+```
+
+刷新商品页面：http://localhost/item.html?id=1001，即可看到效果：
+
+![image-20210821101217089](assets/image-20210821101217089.png)
+
+#### 4.3.请求参数处理
+
+上一节中，我们在OpenResty接收前端请求，但是返回的是假数据。
+
+要返回真实数据，必须根据前端传递来的商品id，查询商品信息才可以。
+
+那么如何获取前端传递的商品参数呢？
+
+##### 4.3.1.获取参数的API
+
+OpenResty中提供了一些API用来获取不同类型的前端请求参数：
+
+![image-20210821101433528](assets/image-20210821101433528.png)
+
+##### 4.3.2.获取参数并返回
+
+在前端发起的ajax请求如图：
+
+![image-20210821101721649](assets/image-20210821101721649.png)
+
+可以看到商品id是以路径占位符方式传递的，因此可以利用正则表达式匹配的方式来获取ID
+
+1）获取商品id
+
+修改`/usr/loca/openresty/nginx/nginx.conf`文件中监听/api/item的代码，利用正则表达式获取ID：
+
+```nginx
+location ~ /api/item/(\d+) {
+    # 默认的响应类型
+    default_type application/json;
+    # 响应结果由lua/item.lua文件来决定
+    content_by_lua_file lua/item.lua;
+}
+```
+
+2）拼接ID并返回
+
+修改`/usr/loca/openresty/nginx/lua/item.lua`文件，获取id并拼接到结果中返回：
+
+```lua
+-- 获取商品id
+local id = ngx.var[1]
+-- 拼接并返回
+ngx.say('{"id":' .. id .. ',"name":"SALSA AIR","title":"RIMOWA 21寸托运箱拉杆箱 SALSA AIR系列果绿色 820.70.36.4","price":17900,"image":"https://m.360buyimg.com/mobilecms/s720x720_jfs/t6934/364/1195375010/84676/e9f2c55f/597ece38N0ddcbc77.jpg!q70.jpg.webp","category":"拉杆箱","brand":"RIMOWA","spec":"","status":1,"createTime":"2019-04-30T16:00:00.000+00:00","updateTime":"2019-04-30T16:00:00.000+00:00","stock":2999,"sold":31290}')
+```
+
+3）重新加载并测试
+
+运行命令以重新加载OpenResty配置：
+
+```sh
+nginx -s reload
+```
+
+刷新页面可以看到结果中已经带上了ID：
+
+![image-20210821102235467](assets/image-20210821102235467.png) 
+
+#### 4.4.查询Tomcat
+
+拿到商品ID后，本应去缓存中查询商品信息，不过目前我们还未建立nginx、redis缓存。因此，这里我们先根据商品id去tomcat查询商品信息。我们实现如图部分：
+
+![image-20210821102610167](assets/image-20210821102610167.png)
+
+需要注意的是，我们的OpenResty是在虚拟机，Tomcat是在Windows电脑上。两者IP一定不要搞错了。
+
+![image-20210821102959829](assets/image-20210821102959829.png)
+
+##### 4.4.1.发送http请求的API
+
+nginx提供了内部API用以发送http请求：
+
+```lua
+local resp = ngx.location.capture("/path",{
+    method = ngx.HTTP_GET,   -- 请求方式
+    args = {a=1,b=2},  -- get方式传参数
+})
+```
+
+返回的响应内容包括：
+
+- resp.status：响应状态码
+- resp.header：响应头，是一个table
+- resp.body：响应体，就是响应数据
+
+注意：这里的path是路径，并不包含IP和端口。这个请求会被nginx内部的server监听并处理。
+
+但是我们希望这个请求发送到Tomcat服务器，所以还需要编写一个server来对这个路径做反向代理：
+
+```nginx
+ location /path {
+     # 这里是windows电脑的ip和Java服务端口，需要确保windows防火墙处于关闭状态
+     proxy_pass http://192.168.150.1:8081; 
+ }
+```
+
+原理如图：
+
+![image-20210821104149061](assets/image-20210821104149061.png)
+
+##### 4.4.2.封装http工具
+
+下面，我们封装一个发送Http请求的工具，基于ngx.location.capture来实现查询tomcat。
+
+1）添加反向代理，到windows的Java服务
+
+因为item-service中的接口都是/item开头，所以我们监听/item路径，代理到windows上的tomcat服务。
+
+修改 `/usr/local/openresty/nginx/conf/nginx.conf`文件，添加一个location：
+
+```nginx
+location /item {
+    proxy_pass http://192.168.150.1:8081;
+}
+```
+
+以后，只要我们调用`ngx.location.capture("/item")`，就一定能发送请求到windows的tomcat服务。
+
+2）封装工具类
+
+之前我们说过，OpenResty启动时会加载以下两个目录中的工具文件：
+
+![image-20210821104857413](assets/image-20210821104857413.png)
+
+所以，自定义的http工具也需要放到这个目录下。
+
+在`/usr/local/openresty/lualib`目录下，新建一个common.lua文件：
+
+```sh
+vi /usr/local/openresty/lualib/common.lua
+```
+
+内容如下:
+
+```lua
+-- 封装函数，发送http请求，并解析响应
+local function read_http(path, params)
+    local resp = ngx.location.capture(path,{
+        method = ngx.HTTP_GET,
+        args = params,
+    })
+    if not resp then
+        -- 记录错误信息，返回404
+        ngx.log(ngx.ERR, "http请求查询失败, path: ", path , ", args: ", args)
+        ngx.exit(404)
+    end
+    return resp.body
+end
+-- 将方法导出
+local _M = {  
+    read_http = read_http
+}  
+return _M
+```
+
+这个工具将read_http函数封装到_M这个table类型的变量中，并且返回，这类似于导出。
+
+使用的时候，可以利用`require('common')`来导入该函数库，这里的common是函数库的文件名。
+
+3）实现商品查询
+
+最后，我们修改`/usr/local/openresty/lua/item.lua`文件，利用刚刚封装的函数库实现对tomcat的查询：
+
+```lua
+-- 引入自定义common工具模块，返回值是common中返回的 _M
+local common = require("common")
+-- 从 common中获取read_http这个函数
+local read_http = common.read_http
+-- 获取路径参数
+local id = ngx.var[1]
+-- 根据id查询商品
+local itemJSON = read_http("/item/".. id, nil)
+-- 根据id查询商品库存
+local itemStockJSON = read_http("/item/stock/".. id, nil)
+```
+
+这里查询到的结果是json字符串，并且包含商品、库存两个json字符串，页面最终需要的是把两个json拼接为一个json：
+
+![image-20210821110441222](assets/image-20210821110441222.png)
+
+这就需要我们先把JSON变为lua的table，完成数据整合后，再转为JSON。
+
+##### 4.4.3.CJSON工具类
+
+OpenResty提供了一个cjson的模块用来处理JSON的序列化和反序列化。
+
+官方地址： https://github.com/openresty/lua-cjson/
+
+1）引入cjson模块：
+
+```lua
+local cjson = require "cjson"
+```
+
+2）序列化：
+
+```lua
+local obj = {
+    name = 'jack',
+    age = 21
+}
+-- 把 table 序列化为 json
+local json = cjson.encode(obj)
+```
+
+3）反序列化：
+
+```lua
+local json = '{"name": "jack", "age": 21}'
+-- 反序列化 json为 table
+local obj = cjson.decode(json);
+print(obj.name)
+```
+
+##### 4.4.4.实现Tomcat查询
+
+下面，我们修改之前的item.lua中的业务，添加json处理功能：
+
+```lua
+-- 导入common函数库
+local common = require('common')
+local read_http = common.read_http
+-- 导入cjson库
+local cjson = require('cjson')
+
+-- 获取路径参数
+local id = ngx.var[1]
+-- 根据id查询商品
+local itemJSON = read_http("/item/".. id, nil)
+-- 根据id查询商品库存
+local itemStockJSON = read_http("/item/stock/".. id, nil)
+
+-- JSON转化为lua的table
+local item = cjson.decode(itemJSON)
+local stock = cjson.decode(stockJSON)
+
+-- 组合数据
+item.stock = stock.stock
+item.sold = stock.sold
+
+-- 把item序列化为json 返回结果
+ngx.say(cjson.encode(item))
+```
+
+##### 4.4.5.基于ID负载均衡
+
+刚才的代码中，我们的tomcat是单机部署。而实际开发中，tomcat一定是集群模式：
+
+![image-20210821111023255](assets/image-20210821111023255.png)
+
+因此，OpenResty需要对tomcat集群做负载均衡。
+
+而默认的负载均衡规则是轮询模式，当我们查询/item/10001时：
+
+- 第一次会访问8081端口的tomcat服务，在该服务内部就形成了JVM进程缓存
+- 第二次会访问8082端口的tomcat服务，该服务内部没有JVM缓存（因为JVM缓存无法共享），会查询数据库
+- ...
+
+你看，因为轮询的原因，第一次查询8081形成的JVM缓存并未生效，直到下一次再次访问到8081时才可以生效，缓存命中率太低了。
+
+怎么办？
+
+如果能让同一个商品，每次查询时都访问同一个tomcat服务，那么JVM缓存就一定能生效了。
+
+也就是说，我们需要根据商品id做负载均衡，而不是轮询。
+
+###### 1）原理
+
+nginx提供了基于请求路径做负载均衡的算法：
+
+nginx根据请求路径做hash运算，把得到的数值对tomcat服务的数量取余，余数是几，就访问第几个服务，实现负载均衡。
+
+例如：
+
+- 我们的请求路径是 /item/10001
+- tomcat总数为2台（8081、8082）
+- 对请求路径/item/1001做hash运算求余的结果为1
+- 则访问第一个tomcat服务，也就是8081
+
+只要id不变，每次hash运算结果也不会变，那就可以保证同一个商品，一直访问同一个tomcat服务，确保JVM缓存生效。
+
+###### 2）实现
+
+修改`/usr/local/openresty/nginx/conf/nginx.conf`文件，实现基于ID做负载均衡。
+
+首先，定义tomcat集群，并设置基于路径做负载均衡：
+
+```nginx 
+upstream tomcat-cluster {
+    hash $request_uri;
+    server 192.168.150.1:8081;
+    server 192.168.150.1:8082;
+}
+```
+
+然后，修改对tomcat服务的反向代理，目标指向tomcat集群：
+
+```nginx
+location /item {
+    proxy_pass http://tomcat-cluster;
+}
+```
+
+重新加载OpenResty
+
+```sh
+nginx -s reload
+```
+
+###### 3）测试
+
+启动两台tomcat服务：
+
+![image-20210821112420464](assets/image-20210821112420464.png)
+
+同时启动：
+
+![image-20210821112444482](assets/image-20210821112444482.png) 
+
+清空日志后，再次访问页面，可以看到不同id的商品，访问到了不同的tomcat服务：
+
+![image-20210821112559965](assets/image-20210821112559965.png)
+
+![image-20210821112637430](assets/image-20210821112637430.png)
+
+#### 4.5.Redis缓存预热
+
+Redis缓存会面临冷启动问题：
+
+**冷启动**：服务刚刚启动时，Redis中并没有缓存，如果所有商品数据都在第一次查询时添加缓存，可能会给数据库带来较大压力。
+
+**缓存预热**：在实际开发中，我们可以利用大数据统计用户访问的热点数据，在项目启动时将这些热点数据提前查询并保存到Redis中。
+
+我们数据量较少，并且没有数据统计相关功能，目前可以在启动时将所有数据都放入缓存中。
+
+1）利用Docker安装Redis
+
+```sh
+docker run --name redis -p 6379:6379 -d redis redis-server --appendonly yes
+```
+
+2）在item-service服务中引入Redis依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+3）配置Redis地址
+
+```yaml
+spring:
+  redis:
+    host: 192.168.150.101
+```
+
+4）编写初始化类
+
+缓存预热需要在项目启动时完成，并且必须是拿到RedisTemplate之后。
+
+这里我们利用InitializingBean接口来实现，因为InitializingBean可以在对象被Spring创建并且成员变量全部注入后执行。
+
+```java
+package com.heima.item.config;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.heima.item.pojo.Item;
+import com.heima.item.pojo.ItemStock;
+import com.heima.item.service.IItemService;
+import com.heima.item.service.IItemStockService;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+public class RedisHandler implements InitializingBean {
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private IItemService itemService;
+    @Autowired
+    private IItemStockService stockService;
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        // 初始化缓存
+        // 1.查询商品信息
+        List<Item> itemList = itemService.list();
+        // 2.放入缓存
+        for (Item item : itemList) {
+            // 2.1.item序列化为JSON
+            String json = MAPPER.writeValueAsString(item);
+            // 2.2.存入redis
+            redisTemplate.opsForValue().set("item:id:" + item.getId(), json);
+        }
+
+        // 3.查询商品库存信息
+        List<ItemStock> stockList = stockService.list();
+        // 4.放入缓存
+        for (ItemStock stock : stockList) {
+            // 2.1.item序列化为JSON
+            String json = MAPPER.writeValueAsString(stock);
+            // 2.2.存入redis
+            redisTemplate.opsForValue().set("item:stock:id:" + stock.getId(), json);
+        }
+    }
+}
+```
+
+#### 4.6.查询Redis缓存
+
+现在，Redis缓存已经准备就绪，我们可以再OpenResty中实现查询Redis的逻辑了。如下图红框所示：
+
+![image-20210821113340111](assets/image-20210821113340111.png)
+
+当请求进入OpenResty之后：
+
+- 优先查询Redis缓存
+- 如果Redis缓存未命中，再查询Tomcat
+
+##### 4.6.1.封装Redis工具
+
+OpenResty提供了操作Redis的模块，我们只要引入该模块就能直接使用。但是为了方便，我们将Redis操作封装到之前的common.lua工具库中。
+
+修改`/usr/local/openresty/lualib/common.lua`文件：
+
+1）引入Redis模块，并初始化Redis对象
+
+```lua
+-- 导入redis
+local redis = require('resty.redis')
+-- 初始化redis
+local red = redis:new()
+red:set_timeouts(1000, 1000, 1000)
+```
+
+2）封装函数，用来释放Redis连接，其实是放入连接池
+
+```lua
+-- 关闭redis连接的工具方法，其实是放入连接池
+local function close_redis(red)
+    local pool_max_idle_time = 10000 -- 连接的空闲时间，单位是毫秒
+    local pool_size = 100 --连接池大小
+    local ok, err = red:set_keepalive(pool_max_idle_time, pool_size)
+    if not ok then
+        ngx.log(ngx.ERR, "放入redis连接池失败: ", err)
+    end
+end
+```
+
+3）封装函数，根据key查询Redis数据
+
+```lua
+-- 查询redis的方法 ip和port是redis地址，key是查询的key
+local function read_redis(ip, port, key)
+    -- 获取一个连接
+    local ok, err = red:connect(ip, port)
+    if not ok then
+        ngx.log(ngx.ERR, "连接redis失败 : ", err)
+        return nil
+    end
+    -- 查询redis
+    local resp, err = red:get(key)
+    -- 查询失败处理
+    if not resp then
+        ngx.log(ngx.ERR, "查询Redis失败: ", err, ", key = " , key)
+    end
+    --得到的数据为空处理
+    if resp == ngx.null then
+        resp = nil
+        ngx.log(ngx.ERR, "查询Redis数据为空, key = ", key)
+    end
+    close_redis(red)
+    return resp
+end
+```
+
+4）导出
+
+```lua
+-- 将方法导出
+local _M = {  
+    read_http = read_http,
+    read_redis = read_redis
+}  
+return _M
+```
+
+完整的common.lua：
+
+```lua
+-- 导入redis
+local redis = require('resty.redis')
+-- 初始化redis
+local red = redis:new()
+red:set_timeouts(1000, 1000, 1000)
+
+-- 关闭redis连接的工具方法，其实是放入连接池
+local function close_redis(red)
+    local pool_max_idle_time = 10000 -- 连接的空闲时间，单位是毫秒
+    local pool_size = 100 --连接池大小
+    local ok, err = red:set_keepalive(pool_max_idle_time, pool_size)
+    if not ok then
+        ngx.log(ngx.ERR, "放入redis连接池失败: ", err)
+    end
+end
+
+-- 查询redis的方法 ip和port是redis地址，key是查询的key
+local function read_redis(ip, port, key)
+    -- 获取一个连接
+    local ok, err = red:connect(ip, port)
+    if not ok then
+        ngx.log(ngx.ERR, "连接redis失败 : ", err)
+        return nil
+    end
+    -- 查询redis
+    local resp, err = red:get(key)
+    -- 查询失败处理
+    if not resp then
+        ngx.log(ngx.ERR, "查询Redis失败: ", err, ", key = " , key)
+    end
+    --得到的数据为空处理
+    if resp == ngx.null then
+        resp = nil
+        ngx.log(ngx.ERR, "查询Redis数据为空, key = ", key)
+    end
+    close_redis(red)
+    return resp
+end
+
+-- 封装函数，发送http请求，并解析响应
+local function read_http(path, params)
+    local resp = ngx.location.capture(path,{
+        method = ngx.HTTP_GET,
+        args = params,
+    })
+    if not resp then
+        -- 记录错误信息，返回404
+        ngx.log(ngx.ERR, "http查询失败, path: ", path , ", args: ", args)
+        ngx.exit(404)
+    end
+    return resp.body
+end
+-- 将方法导出
+local _M = {  
+    read_http = read_http,
+    read_redis = read_redis
+}  
+return _M
+```
+
+##### 4.6.2.实现Redis查询
+
+接下来，我们就可以去修改item.lua文件，实现对Redis的查询了。
+
+查询逻辑是：
+
+- 根据id查询Redis
+- 如果查询失败则继续查询Tomcat
+- 将查询结果返回
+
+1）修改`/usr/local/openresty/lua/item.lua`文件，添加一个查询函数：
+
+```lua
+-- 导入common函数库
+local common = require('common')
+local read_http = common.read_http
+local read_redis = common.read_redis
+-- 封装查询函数
+function read_data(key, path, params)
+    -- 查询本地缓存
+    local val = read_redis("127.0.0.1", 6379, key)
+    -- 判断查询结果
+    if not val then
+        ngx.log(ngx.ERR, "redis查询失败，尝试查询http， key: ", key)
+        -- redis查询失败，去查询http
+        val = read_http(path, params)
+    end
+    -- 返回数据
+    return val
+end
+```
+
+2）而后修改商品查询、库存查询的业务：
+
+![image-20210821114528954](assets/image-20210821114528954.png)
+
+3）完整的item.lua代码：
+
+```lua
+-- 导入common函数库
+local common = require('common')
+local read_http = common.read_http
+local read_redis = common.read_redis
+-- 导入cjson库
+local cjson = require('cjson')
+
+-- 封装查询函数
+function read_data(key, path, params)
+    -- 查询本地缓存
+    local val = read_redis("127.0.0.1", 6379, key)
+    -- 判断查询结果
+    if not val then
+        ngx.log(ngx.ERR, "redis查询失败，尝试查询http， key: ", key)
+        -- redis查询失败，去查询http
+        val = read_http(path, params)
+    end
+    -- 返回数据
+    return val
+end
+
+-- 获取路径参数
+local id = ngx.var[1]
+
+-- 查询商品信息
+local itemJSON = read_data("item:id:" .. id,  "/item/" .. id, nil)
+-- 查询库存信息
+local stockJSON = read_data("item:stock:id:" .. id, "/item/stock/" .. id, nil)
+
+-- JSON转化为lua的table
+local item = cjson.decode(itemJSON)
+local stock = cjson.decode(stockJSON)
+-- 组合数据
+item.stock = stock.stock
+item.sold = stock.sold
+
+-- 把item序列化为json 返回结果
+ngx.say(cjson.encode(item))
+```
+
+#### 4.7.Nginx本地缓存
+
+现在，整个多级缓存中只差最后一环，也就是nginx的本地缓存了。如图：
+
+![image-20210821114742950](assets/image-20210821114742950.png)
+
+##### 4.7.1.本地缓存API
+
+OpenResty为Nginx提供了**shard dict**的功能，可以在nginx的多个worker之间共享数据，实现缓存功能。
+
+1）开启共享字典，在nginx.conf的http下添加配置：
+
+```nginx
+ # 共享字典，也就是本地缓存，名称叫做：item_cache，大小150m
+ lua_shared_dict item_cache 150m; 
+```
+
+2）操作共享字典：
+
+```lua
+-- 获取本地缓存对象
+local item_cache = ngx.shared.item_cache
+-- 存储, 指定key、value、过期时间，单位s，默认为0代表永不过期
+item_cache:set('key', 'value', 1000)
+-- 读取
+local val = item_cache:get('key')
+```
+
+##### 4.7.2.实现本地缓存查询
+
+1）修改`/usr/local/openresty/lua/item.lua`文件，修改read_data查询函数，添加本地缓存逻辑：
+
+```lua
+-- 导入共享词典，本地缓存
+local item_cache = ngx.shared.item_cache
+
+-- 封装查询函数
+function read_data(key, expire, path, params)
+    -- 查询本地缓存
+    local val = item_cache:get(key)
+    if not val then
+        ngx.log(ngx.ERR, "本地缓存查询失败，尝试查询Redis， key: ", key)
+        -- 查询redis
+        val = read_redis("127.0.0.1", 6379, key)
+        -- 判断查询结果
+        if not val then
+            ngx.log(ngx.ERR, "redis查询失败，尝试查询http， key: ", key)
+            -- redis查询失败，去查询http
+            val = read_http(path, params)
+        end
+    end
+    -- 查询成功，把数据写入本地缓存
+    item_cache:set(key, val, expire)
+    -- 返回数据
+    return val
+end
+```
+
+2）修改item.lua中查询商品和库存的业务，实现最新的read_data函数：
+
+![image-20210821115108528](assets/image-20210821115108528.png)
+
+其实就是多了缓存时间参数，过期后nginx缓存会自动删除，下次访问即可更新缓存。
+
+这里给商品基本信息设置超时时间为30分钟，库存为1分钟。
+
+因为库存更新频率较高，如果缓存时间过长，可能与数据库差异较大。
+
+3）完整的item.lua文件：
+
+```lua
+-- 导入common函数库
+local common = require('common')
+local read_http = common.read_http
+local read_redis = common.read_redis
+-- 导入cjson库
+local cjson = require('cjson')
+-- 导入共享词典，本地缓存
+local item_cache = ngx.shared.item_cache
+
+-- 封装查询函数
+function read_data(key, expire, path, params)
+    -- 查询本地缓存
+    local val = item_cache:get(key)
+    if not val then
+        ngx.log(ngx.ERR, "本地缓存查询失败，尝试查询Redis， key: ", key)
+        -- 查询redis
+        val = read_redis("127.0.0.1", 6379, key)
+        -- 判断查询结果
+        if not val then
+            ngx.log(ngx.ERR, "redis查询失败，尝试查询http， key: ", key)
+            -- redis查询失败，去查询http
+            val = read_http(path, params)
+        end
+    end
+    -- 查询成功，把数据写入本地缓存
+    item_cache:set(key, val, expire)
+    -- 返回数据
+    return val
+end
+
+-- 获取路径参数
+local id = ngx.var[1]
+
+-- 查询商品信息
+local itemJSON = read_data("item:id:" .. id, 1800,  "/item/" .. id, nil)
+-- 查询库存信息
+local stockJSON = read_data("item:stock:id:" .. id, 60, "/item/stock/" .. id, nil)
+
+-- JSON转化为lua的table
+local item = cjson.decode(itemJSON)
+local stock = cjson.decode(stockJSON)
+-- 组合数据
+item.stock = stock.stock
+item.sold = stock.sold
+
+-- 把item序列化为json 返回结果
+ngx.say(cjson.encode(item))
+```
+
+### 5.缓存同步
+
+大多数情况下，浏览器查询到的都是缓存数据，如果缓存数据与数据库数据存在较大差异，可能会产生比较严重的后果。
+
+所以我们必须保证数据库数据、缓存数据的一致性，这就是缓存与数据库的同步。
+
+#### 5.1.数据同步策略
+
+缓存数据同步的常见方式有三种：
+
+**设置有效期**：给缓存设置有效期，到期后自动删除。再次查询时更新
+
+- 优势：简单、方便
+- 缺点：时效性差，缓存过期之前可能不一致
+- 场景：更新频率较低，时效性要求低的业务
+
+**同步双写**：在修改数据库的同时，直接修改缓存
+
+- 优势：时效性强，缓存与数据库强一致
+- 缺点：有代码侵入，耦合度高；
+- 场景：对一致性、时效性要求较高的缓存数据
+
+**异步通知：**修改数据库时发送事件通知，相关服务监听到通知后修改缓存数据
+
+- 优势：低耦合，可以同时通知多个缓存服务
+- 缺点：时效性一般，可能存在中间不一致状态
+- 场景：时效性要求一般，有多个服务需要同步
+
+而异步实现又可以基于MQ或者Canal来实现：
+
+1）基于MQ的异步通知：
+
+![image-20210821115552327](assets/image-20210821115552327.png)
+
+解读：
+
+- 商品服务完成对数据的修改后，只需要发送一条消息到MQ中。
+- 缓存服务监听MQ消息，然后完成对缓存的更新
+
+依然有少量的代码侵入。
+
+2）基于Canal的通知
+
+![image-20210821115719363](assets/image-20210821115719363.png)
+
+解读：
+
+- 商品服务完成商品修改后，业务直接结束，没有任何代码侵入
+- Canal监听MySQL变化，当发现变化后，立即通知缓存服务
+- 缓存服务接收到canal通知，更新缓存
+
+代码零侵入
+
+#### 5.2.安装Canal
+
+##### 5.2.1.认识Canal
+
+**Canal [kə'næl]**，译意为水道/管道/沟渠，canal是阿里巴巴旗下的一款开源项目，基于Java开发。基于数据库增量日志解析，提供增量数据订阅&消费。GitHub的地址：https://github.com/alibaba/canal
+
+Canal是基于mysql的主从同步来实现的，MySQL主从同步的原理如下：
+
+![image-20210821115914748](assets/image-20210821115914748.png)
+
+- 1）MySQL master 将数据变更写入二进制日志( binary log），其中记录的数据叫做binary log events
+- 2）MySQL slave 将 master 的 binary log events拷贝到它的中继日志(relay log)
+- 3）MySQL slave 重放 relay log 中事件，将数据变更反映它自己的数据
+
+而Canal就是把自己伪装成MySQL的一个slave节点，从而监听master的binary log变化。再把得到的变化信息通知给Canal的客户端，进而完成对其它数据库的同步。
+
+![image-20210821115948395](assets/image-20210821115948395.png)
+
+##### 5.2.2.安装Canal
+
+安装和配置Canal参考[《安装Canal.md》](./othermds/安装Canal.md)
+
+![image-20210821120017324](assets/image-20210821120017324.png) 
+
+#### 5.3.监听Canal
+
+Canal提供了各种语言的客户端，当Canal监听到binlog变化时，会通知Canal的客户端。
+
+![image-20210821120049024](assets/image-20210821120049024.png)
+
+我们可以利用Canal提供的Java客户端，监听Canal通知消息。当收到变化的消息时，完成对缓存的更新。
+
+不过这里我们会使用GitHub上的第三方开源的canal-starter客户端。地址：https://github.com/NormanGyllenhaal/canal-client
+
+与SpringBoot完美整合，自动装配，比官方客户端要简单好用很多。
+
+##### 5.3.1.引入依赖：
+
+```xml
+<dependency>
+    <groupId>top.javatool</groupId>
+    <artifactId>canal-spring-boot-starter</artifactId>
+    <version>1.2.1-RELEASE</version>
+</dependency>
+```
+
+##### 5.3.2.编写配置：
+
+```yaml
+canal:
+  destination: heima # canal的集群名字，要与安装canal时设置的名称一致
+  server: 192.168.150.101:11111 # canal服务地址
+```
+
+##### 5.3.3.修改Item实体类
+
+通过@Id、@Column、等注解完成Item与数据库表字段的映射：
+
+```java
+package com.heima.item.pojo;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+
+import javax.persistence.Column;
+import java.util.Date;
+
+@Data
+@TableName("tb_item")
+public class Item {
+    @TableId(type = IdType.AUTO)
+    @Id
+    private Long id;//商品id
+    @Column(name = "name")
+    private String name;//商品名称
+    private String title;//商品标题
+    private Long price;//价格（分）
+    private String image;//商品图片
+    private String category;//分类名称
+    private String brand;//品牌名称
+    private String spec;//规格
+    private Integer status;//商品状态 1-正常，2-下架
+    private Date createTime;//创建时间
+    private Date updateTime;//更新时间
+    @TableField(exist = false)
+    @Transient
+    private Integer stock;
+    @TableField(exist = false)
+    @Transient
+    private Integer sold;
+}
+```
+
+##### 5.3.4.编写监听器
+
+通过实现`EntryHandler<T>`接口编写监听器，监听Canal消息。注意两点：
+
+- 实现类通过`@CanalTable("tb_item")`指定监听的表信息
+- EntryHandler的泛型是与表对应的实体类
+
+```java
+package com.heima.item.canal;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.heima.item.config.RedisHandler;
+import com.heima.item.pojo.Item;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import top.javatool.canal.client.annotation.CanalTable;
+import top.javatool.canal.client.handler.EntryHandler;
+
+@CanalTable("tb_item")
+@Component
+public class ItemHandler implements EntryHandler<Item> {
+
+    @Autowired
+    private RedisHandler redisHandler;
+    @Autowired
+    private Cache<Long, Item> itemCache;
+
+    @Override
+    public void insert(Item item) {
+        // 写数据到JVM进程缓存
+        itemCache.put(item.getId(), item);
+        // 写数据到redis
+        redisHandler.saveItem(item);
+    }
+
+    @Override
+    public void update(Item before, Item after) {
+        // 写数据到JVM进程缓存
+        itemCache.put(after.getId(), after);
+        // 写数据到redis
+        redisHandler.saveItem(after);
+    }
+
+    @Override
+    public void delete(Item item) {
+        // 删除数据到JVM进程缓存
+        itemCache.invalidate(item.getId());
+        // 删除数据到redis
+        redisHandler.deleteItemById(item.getId());
+    }
+}
+```
+
+在这里对Redis的操作都封装到了RedisHandler这个对象中，是我们之前做缓存预热时编写的一个类，内容如下：
+
+```java
+package com.heima.item.config;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.heima.item.pojo.Item;
+import com.heima.item.pojo.ItemStock;
+import com.heima.item.service.IItemService;
+import com.heima.item.service.IItemStockService;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+public class RedisHandler implements InitializingBean {
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private IItemService itemService;
+    @Autowired
+    private IItemStockService stockService;
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        // 初始化缓存
+        // 1.查询商品信息
+        List<Item> itemList = itemService.list();
+        // 2.放入缓存
+        for (Item item : itemList) {
+            // 2.1.item序列化为JSON
+            String json = MAPPER.writeValueAsString(item);
+            // 2.2.存入redis
+            redisTemplate.opsForValue().set("item:id:" + item.getId(), json);
+        }
+
+        // 3.查询商品库存信息
+        List<ItemStock> stockList = stockService.list();
+        // 4.放入缓存
+        for (ItemStock stock : stockList) {
+            // 2.1.item序列化为JSON
+            String json = MAPPER.writeValueAsString(stock);
+            // 2.2.存入redis
+            redisTemplate.opsForValue().set("item:stock:id:" + stock.getId(), json);
+        }
+    }
+
+    public void saveItem(Item item) {
+        try {
+            String json = MAPPER.writeValueAsString(item);
+            redisTemplate.opsForValue().set("item:id:" + item.getId(), json);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void deleteItemById(Long id) {
+        redisTemplate.delete("item:id:" + id);
+    }
+}
+```
+
+------
+
+
+
+## 服务异步通信
+
+消息队列在使用过程中，面临着很多实际问题需要思考：
+
+![image-20210718155003157](assets/image-20210718155003157.png)
+
+### 1.消息可靠性
+
+消息从发送，到消费者接收，会经理多个过程：
+
+![image-20210718155059371](assets/image-20210718155059371.png)
+
+其中的每一步都可能导致消息丢失，常见的丢失原因包括：
+
+- 发送时丢失：
+  - 生产者发送的消息未送达exchange
+  - 消息到达exchange后未到达queue
+- MQ宕机，queue将消息丢失
+- consumer接收到消息后未消费就宕机
+
+针对这些问题，RabbitMQ分别给出了解决方案：
+
+- 生产者确认机制
+- mq持久化
+- 消费者确认机制
+- 失败重试机制
+
+下面我们就通过案例来演示每一个步骤。
+
+首先，导入资料提供的demo工程：
+
+![image-20210718155328927](assets/image-20210718155328927.png)
+
+项目结构如下：
+
+![image-20210718155448734](assets/image-20210718155448734.png)
+
+
+#### 1.1.生产者消息确认
+
+RabbitMQ提供了publisher confirm机制来避免消息发送到MQ过程中丢失。这种机制必须给每个消息指定一个唯一ID。消息发送到MQ以后，会返回一个结果给发送者，表示消息是否处理成功。
+
+返回结果有两种方式：
+
+- publisher-confirm，发送者确认
+  - 消息成功投递到交换机，返回ack
+  - 消息未投递到交换机，返回nack
+- publisher-return，发送者回执
+  - 消息投递到交换机了，但是没有路由到队列。返回ACK，及路由失败原因。
+
+![image-20210718160907166](assets/image-20210718160907166.png)
+
+注意：
+
+![image-20210718161707992](assets/image-20210718161707992.png)
+
+##### 1.1.1.修改配置
+
+首先，修改publisher服务中的application.yml文件，添加下面的内容：
+
+```yaml
+spring:
+  rabbitmq:
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+   
+```
+
+说明：
+
+- `publish-confirm-type`：开启publisher-confirm，这里支持两种类型：
+  - `simple`：同步等待confirm结果，直到超时
+  - `correlated`：异步回调，定义ConfirmCallback，MQ返回结果时会回调这个ConfirmCallback
+- `publish-returns`：开启publish-return功能，同样是基于callback机制，不过是定义ReturnCallback
+- `template.mandatory`：定义消息路由失败时的策略。true，则调用ReturnCallback；false：则直接丢弃消息
+
+##### 1.1.2.定义Return回调
+
+每个RabbitTemplate只能配置一个ReturnCallback，因此需要在项目加载时配置：
+
+修改publisher服务，添加一个：
+
+```java
+package cn.itcast.mq.config;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Configuration;
+
+@Slf4j
+@Configuration
+public class CommonConfig implements ApplicationContextAware {
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        // 获取RabbitTemplate
+        RabbitTemplate rabbitTemplate = applicationContext.getBean(RabbitTemplate.class);
+        // 设置ReturnCallback
+        rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -> {
+            // 投递失败，记录日志
+            log.info("消息发送失败，应答码{}，原因{}，交换机{}，路由键{},消息{}",
+                     replyCode, replyText, exchange, routingKey, message.toString());
+            // 如果有业务需要，可以重发消息
+        });
+    }
+}
+```
+
+##### 1.1.3.定义ConfirmCallback
+
+ConfirmCallback可以在发送消息时指定，因为每个业务处理confirm成功或失败的逻辑不一定相同。
+
+在publisher服务的cn.itcast.mq.spring.SpringAmqpTest类中，定义一个单元测试方法：
+
+```java
+public void testSendMessage2SimpleQueue() throws InterruptedException {
+    // 1.消息体
+    String message = "hello, spring amqp!";
+    // 2.全局唯一的消息ID，需要封装到CorrelationData中
+    CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
+    // 3.添加callback
+    correlationData.getFuture().addCallback(
+        result -> {
+            if(result.isAck()){
+                // 3.1.ack，消息成功
+                log.debug("消息发送成功, ID:{}", correlationData.getId());
+            }else{
+                // 3.2.nack，消息失败
+                log.error("消息发送失败, ID:{}, 原因{}",correlationData.getId(), result.getReason());
+            }
+        },
+        ex -> log.error("消息发送异常, ID:{}, 原因{}",correlationData.getId(),ex.getMessage())
+    );
+    // 4.发送消息
+    rabbitTemplate.convertAndSend("task.direct", "task", message, correlationData);
+
+    // 休眠一会儿，等待ack回执
+    Thread.sleep(2000);
+}
+```
+
+#### 1.2.消息持久化
+
+生产者确认可以确保消息投递到RabbitMQ的队列中，但是消息发送到RabbitMQ以后，如果突然宕机，也可能导致消息丢失。
+
+要想确保消息在RabbitMQ中安全保存，必须开启消息持久化机制。
+
+- 交换机持久化
+- 队列持久化
+- 消息持久化
+
+##### 1.2.1.交换机持久化
+
+RabbitMQ中交换机默认是非持久化的，mq重启后就丢失。
+
+SpringAMQP中可以通过代码指定交换机持久化：
+
+```java
+@Bean
+public DirectExchange simpleExchange(){
+    // 三个参数：交换机名称、是否持久化、当没有queue与其绑定时是否自动删除
+    return new DirectExchange("simple.direct", true, false);
+}
+```
+
+事实上，默认情况下，由SpringAMQP声明的交换机都是持久化的。
+
+可以在RabbitMQ控制台看到持久化的交换机都会带上`D`的标示：
+
+![image-20210718164412450](assets/image-20210718164412450.png)
+
+##### 1.2.2.队列持久化
+
+RabbitMQ中队列默认是非持久化的，mq重启后就丢失。
+
+SpringAMQP中可以通过代码指定交换机持久化：
+
+```java
+@Bean
+public Queue simpleQueue(){
+    // 使用QueueBuilder构建队列，durable就是持久化的
+    return QueueBuilder.durable("simple.queue").build();
+}
+```
+
+事实上，默认情况下，由SpringAMQP声明的队列都是持久化的。
+
+可以在RabbitMQ控制台看到持久化的队列都会带上`D`的标示：
+
+![image-20210718164729543](assets/image-20210718164729543.png)
+
+##### 1.2.3.消息持久化
+
+利用SpringAMQP发送消息时，可以设置消息的属性（MessageProperties），指定delivery-mode：
+
+- 1：非持久化
+- 2：持久化
+
+用java代码指定：
+
+![image-20210718165100016](assets/image-20210718165100016.png)
+
+默认情况下，SpringAMQP发出的任何消息都是持久化的，不用特意指定。
+
+#### 1.3.消费者消息确认
+
+RabbitMQ是**阅后即焚**机制，RabbitMQ确认消息被消费者消费后会立刻删除。
+
+而RabbitMQ是通过消费者回执来确认消费者是否成功处理消息的：消费者获取消息后，应该向RabbitMQ发送ACK回执，表明自己已经处理消息。
+
+设想这样的场景：
+
+- 1）RabbitMQ投递消息给消费者
+- 2）消费者获取消息后，返回ACK给RabbitMQ
+- 3）RabbitMQ删除消息
+- 4）消费者宕机，消息尚未处理
+
+这样，消息就丢失了。因此消费者返回ACK的时机非常重要。
+
+而SpringAMQP则允许配置三种确认模式：
+
+•manual：手动ack，需要在业务代码结束后，调用api发送ack。
+
+•auto：自动ack，由spring监测listener代码是否出现异常，没有异常则返回ack；抛出异常则返回nack
+
+•none：关闭ack，MQ假定消费者获取消息后会成功处理，因此消息投递后立即被删除
+
+由此可知：
+
+- none模式下，消息投递是不可靠的，可能丢失
+- auto模式类似事务机制，出现异常时返回nack，消息回滚到mq；没有异常，返回ack
+- manual：自己根据业务情况，判断什么时候该ack
+
+一般，我们都是使用默认的auto即可。
+
+##### 1.3.1.演示none模式
+
+修改consumer服务的application.yml文件，添加下面内容：
+
+```yaml
+spring:
+  rabbitmq:
+    listener:
+      simple:
+        acknowledge-mode: none # 关闭ack
+```
+
+修改consumer服务的SpringRabbitListener类中的方法，模拟一个消息处理异常：
+
+```java
+@RabbitListener(queues = "simple.queue")
+public void listenSimpleQueue(String msg) {
+    log.info("消费者接收到simple.queue的消息：【{}】", msg);
+    // 模拟异常
+    System.out.println(1 / 0);
+    log.debug("消息处理完成！");
+}
+```
+
+测试可以发现，当消息处理抛异常时，消息依然被RabbitMQ删除了。
+
+##### 1.3.2.演示auto模式
+
+再次把确认机制修改为auto:
+
+```yaml
+spring:
+  rabbitmq:
+    listener:
+      simple:
+        acknowledge-mode: auto # 关闭ack
+```
+
+在异常位置打断点，再次发送消息，程序卡在断点时，可以发现此时消息状态为unack（未确定状态）：
+
+![image-20210718171705383](assets/image-20210718171705383.png)
+
+抛出异常后，因为Spring会自动返回nack，所以消息恢复至Ready状态，并且没有被RabbitMQ删除：
+
+![image-20210718171759179](assets/image-20210718171759179.png)
+
+#### 1.4.消费失败重试机制
+
+当消费者出现异常后，消息会不断requeue（重入队）到队列，再重新发送给消费者，然后再次异常，再次requeue，无限循环，导致mq的消息处理飙升，带来不必要的压力：
+
+![image-20210718172746378](assets/image-20210718172746378.png)
+
+怎么办呢？
+
+##### 1.4.1.本地重试
+
+我们可以利用Spring的retry机制，在消费者出现异常时利用本地重试，而不是无限制的requeue到mq队列。
+
+修改consumer服务的application.yml文件，添加内容：
+
+```yaml
+spring:
+  rabbitmq:
+    listener:
+      simple:
+        retry:
+          enabled: true # 开启消费者失败重试
+          initial-interval: 1000 # 初识的失败等待时长为1秒
+          multiplier: 1 # 失败的等待时长倍数，下次等待时长 = multiplier * last-interval
+          max-attempts: 3 # 最大重试次数
+          stateless: true # true无状态；false有状态。如果业务中包含事务，这里改为false
+```
+
+重启consumer服务，重复之前的测试。可以发现：
+
+- 在重试3次后，SpringAMQP会抛出异常AmqpRejectAndDontRequeueException，说明本地重试触发了
+- 查看RabbitMQ控制台，发现消息被删除了，说明最后SpringAMQP返回的是ack，mq删除消息了
+
+结论：
+
+- 开启本地重试时，消息处理过程中抛出异常，不会requeue到队列，而是在消费者本地重试
+- 重试达到最大次数后，Spring会返回ack，消息会被丢弃
+
+##### 1.4.2.失败策略
+
+在之前的测试中，达到最大重试次数后，消息会被丢弃，这是由Spring内部机制决定的。
+
+在开启重试模式后，重试次数耗尽，如果消息依然失败，则需要有MessageRecovery接口来处理，它包含三种不同的实现：
+
+- RejectAndDontRequeueRecoverer：重试耗尽后，直接reject，丢弃消息。默认就是这种方式
+
+- ImmediateRequeueMessageRecoverer：重试耗尽后，返回nack，消息重新入队
+
+- RepublishMessageRecoverer：重试耗尽后，将失败消息投递到指定的交换机
+
+比较优雅的一种处理方案是RepublishMessageRecoverer，失败后将消息投递到一个指定的，专门存放异常消息的队列，后续由人工集中处理。
+
+1）在consumer服务中定义处理失败消息的交换机和队列
+
+```java
+@Bean
+public DirectExchange errorMessageExchange(){
+    return new DirectExchange("error.direct");
+}
+@Bean
+public Queue errorQueue(){
+    return new Queue("error.queue", true);
+}
+@Bean
+public Binding errorBinding(Queue errorQueue, DirectExchange errorMessageExchange){
+    return BindingBuilder.bind(errorQueue).to(errorMessageExchange).with("error");
+}
+```
+
+2）定义一个RepublishMessageRecoverer，关联队列和交换机
+
+```java
+@Bean
+public MessageRecoverer republishMessageRecoverer(RabbitTemplate rabbitTemplate){
+    return new RepublishMessageRecoverer(rabbitTemplate, "error.direct", "error");
+}
+```
+
+完整代码：
+
+```java
+package cn.itcast.mq.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.retry.MessageRecoverer;
+import org.springframework.amqp.rabbit.retry.RepublishMessageRecoverer;
+import org.springframework.context.annotation.Bean;
+
+@Configuration
+public class ErrorMessageConfig {
+    @Bean
+    public DirectExchange errorMessageExchange(){
+        return new DirectExchange("error.direct");
+    }
+    @Bean
+    public Queue errorQueue(){
+        return new Queue("error.queue", true);
+    }
+    @Bean
+    public Binding errorBinding(Queue errorQueue, DirectExchange errorMessageExchange){
+        return BindingBuilder.bind(errorQueue).to(errorMessageExchange).with("error");
+    }
+
+    @Bean
+    public MessageRecoverer republishMessageRecoverer(RabbitTemplate rabbitTemplate){
+        return new RepublishMessageRecoverer(rabbitTemplate, "error.direct", "error");
+    }
+}
+```
+
+#### 1.5.总结
+
+如何确保RabbitMQ消息的可靠性？
+
+- 开启生产者确认机制，确保生产者的消息能到达队列
+- 开启持久化功能，确保消息未消费前在队列中不会丢失
+- 开启消费者确认机制为auto，由spring确认消息处理成功后完成ack
+- 开启消费者失败重试机制，并设置MessageRecoverer，多次重试失败后将消息投递到异常交换机，交由人工处理
+
+### 2.死信交换机
+
+#### 2.1.初识死信交换机
+
+##### 2.1.1.什么是死信交换机
+
+什么是死信？
+
+当一个队列中的消息满足下列情况之一时，可以成为死信（dead letter）：
+
+- 消费者使用basic.reject或 basic.nack声明消费失败，并且消息的requeue参数设置为false
+- 消息是一个过期消息，超时无人消费
+- 要投递的队列消息满了，无法投递
+
+如果这个包含死信的队列配置了`dead-letter-exchange`属性，指定了一个交换机，那么队列中的死信就会投递到这个交换机中，而这个交换机称为**死信交换机**（Dead Letter Exchange，检查DLX）。
+
+如图，一个消息被消费者拒绝了，变成了死信：
+
+![image-20210718174328383](assets/image-20210718174328383.png)
+
+因为simple.queue绑定了死信交换机 dl.direct，因此死信会投递给这个交换机：
+
+![image-20210718174416160](assets/image-20210718174416160.png)
+
+如果这个死信交换机也绑定了一个队列，则消息最终会进入这个存放死信的队列：
+
+![image-20210718174506856](assets/image-20210718174506856.png)
+
+另外，队列将死信投递给死信交换机时，必须知道两个信息：
+
+- 死信交换机名称
+- 死信交换机与死信队列绑定的RoutingKey
+
+这样才能确保投递的消息能到达死信交换机，并且正确的路由到死信队列。
+
+![image-20210821073801398](assets/image-20210821073801398.png)
+
+##### 2.1.2.利用死信交换机接收死信（拓展）
+
+在失败重试策略中，默认的RejectAndDontRequeueRecoverer会在本地重试次数耗尽后，发送reject给RabbitMQ，消息变成死信，被丢弃。
+
+
+
+我们可以给simple.queue添加一个死信交换机，给死信交换机绑定一个队列。这样消息变成死信后也不会丢弃，而是最终投递到死信交换机，路由到与死信交换机绑定的队列。
+
+
+
+![image-20210718174506856](assets/image-20210718174506856.png)
+
+我们在consumer服务中，定义一组死信交换机、死信队列：
+
+```java
+// 声明普通的 simple.queue队列，并且为其指定死信交换机：dl.direct
+@Bean
+public Queue simpleQueue2(){
+    return QueueBuilder.durable("simple.queue") // 指定队列名称，并持久化
+        .deadLetterExchange("dl.direct") // 指定死信交换机
+        .build();
+}
+// 声明死信交换机 dl.direct
+@Bean
+public DirectExchange dlExchange(){
+    return new DirectExchange("dl.direct", true, false);
+}
+// 声明存储死信的队列 dl.queue
+@Bean
+public Queue dlQueue(){
+    return new Queue("dl.queue", true);
+}
+// 将死信队列 与 死信交换机绑定
+@Bean
+public Binding dlBinding(){
+    return BindingBuilder.bind(dlQueue()).to(dlExchange()).with("simple");
+}
+```
+
+##### 2.1.3.总结
+
+什么样的消息会成为死信？
+
+- 消息被消费者reject或者返回nack
+- 消息超时未消费
+- 队列满了
+
+死信交换机的使用场景是什么？
+
+- 如果队列绑定了死信交换机，死信会投递到死信交换机；
+- 可以利用死信交换机收集所有消费者处理失败的消息（死信），交由人工处理，进一步提高消息队列的可靠性。
+
+#### 2.2.TTL
+
+一个队列中的消息如果超时未消费，则会变为死信，超时分为两种情况：
+
+- 消息所在的队列设置了超时时间
+- 消息本身设置了超时时间
+
+![image-20210718182643311](assets/image-20210718182643311.png)
+
+##### 2.2.1.接收超时死信的死信交换机
+
+在consumer服务的SpringRabbitListener中，定义一个新的消费者，并且声明 死信交换机、死信队列：
+
+```java
+@RabbitListener(bindings = @QueueBinding(
+    value = @Queue(name = "dl.ttl.queue", durable = "true"),
+    exchange = @Exchange(name = "dl.ttl.direct"),
+    key = "ttl"
+))
+public void listenDlQueue(String msg){
+    log.info("接收到 dl.ttl.queue的延迟消息：{}", msg);
+}
+```
+
+##### 2.2.2.声明一个队列，并且指定TTL
+
+要给队列设置超时时间，需要在声明队列时配置x-message-ttl属性：
+
+```java
+@Bean
+public Queue ttlQueue(){
+    return QueueBuilder.durable("ttl.queue") // 指定队列名称，并持久化
+        .ttl(10000) // 设置队列的超时时间，10秒
+        .deadLetterExchange("dl.ttl.direct") // 指定死信交换机
+        .build();
+}
+```
+
+注意，这个队列设定了死信交换机为`dl.ttl.direct`
+
+声明交换机，将ttl与交换机绑定：
+
+```java
+@Bean
+public DirectExchange ttlExchange(){
+    return new DirectExchange("ttl.direct");
+}
+@Bean
+public Binding ttlBinding(){
+    return BindingBuilder.bind(ttlQueue()).to(ttlExchange()).with("ttl");
+}
+```
+
+发送消息，但是不要指定TTL：
+
+```java
+@Test
+public void testTTLQueue() {
+    // 创建消息
+    String message = "hello, ttl queue";
+    // 消息ID，需要封装到CorrelationData中
+    CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
+    // 发送消息
+    rabbitTemplate.convertAndSend("ttl.direct", "ttl", message, correlationData);
+    // 记录日志
+    log.debug("发送消息成功");
+}
+```
+
+发送消息的日志：
+
+![image-20210718191657478](assets/image-20210718191657478.png)
+
+查看下接收消息的日志：
+
+![image-20210718191738706](assets/image-20210718191738706.png)
+
+因为队列的TTL值是10000ms，也就是10秒。可以看到消息发送与接收之间的时差刚好是10秒。
+
+##### 2.2.3.发送消息时，设定TTL
+
+在发送消息时，也可以指定TTL：
+
+```java
+@Test
+public void testTTLMsg() {
+    // 创建消息
+    Message message = MessageBuilder
+        .withBody("hello, ttl message".getBytes(StandardCharsets.UTF_8))
+        .setExpiration("5000")
+        .build();
+    // 消息ID，需要封装到CorrelationData中
+    CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
+    // 发送消息
+    rabbitTemplate.convertAndSend("ttl.direct", "ttl", message, correlationData);
+    log.debug("发送消息成功");
+}
+```
+
+查看发送消息日志：
+
+![image-20210718191939140](assets/image-20210718191939140.png)
+
+接收消息日志：
+
+![image-20210718192004662](assets/image-20210718192004662.png)
+
+这次，发送与接收的延迟只有5秒。说明当队列、消息都设置了TTL时，任意一个到期就会成为死信。
+
+##### 2.2.4.总结
+
+消息超时的两种方式是？
+
+- 给队列设置ttl属性，进入队列后超过ttl时间的消息变为死信
+- 给消息设置ttl属性，队列接收到消息超过ttl时间后变为死信
+
+如何实现发送一个消息20秒后消费者才收到消息？
+
+- 给消息的目标队列指定死信交换机
+- 将消费者监听的队列绑定到死信交换机
+- 发送消息时给消息设置超时时间为20秒
+
+#### 2.3.延迟队列
+
+利用TTL结合死信交换机，我们实现了消息发出后，消费者延迟收到消息的效果。这种消息模式就称为延迟队列（Delay Queue）模式。
+
+延迟队列的使用场景包括：
+
+- 延迟发送短信
+- 用户下单，如果用户在15 分钟内未支付，则自动取消
+- 预约工作会议，20分钟后自动通知所有参会人员
+
+因为延迟队列的需求非常多，所以RabbitMQ的官方也推出了一个插件，原生支持延迟队列效果。
+
+这个插件就是DelayExchange插件。参考RabbitMQ的插件列表页面：https://www.rabbitmq.com/community-plugins.html
+
+![image-20210718192529342](assets/image-20210718192529342.png)
+
+使用方式可以参考官网地址：https://blog.rabbitmq.com/posts/2015/04/scheduling-messages-with-rabbitmq
+
+##### 2.3.1.安装DelayExchange插件
+
+参考资料[《RabbitMQ部署指南.md》](./othermds/RabbitMQ部署指南.md)
+
+![image-20210718193409812](assets/image-20210718193409812.png)
+
+##### 2.3.2.DelayExchange原理
+
+DelayExchange需要将一个交换机声明为delayed类型。当我们发送消息到delayExchange时，流程如下：
+
+- 接收消息
+- 判断消息是否具备x-delay属性
+- 如果有x-delay属性，说明是延迟消息，持久化到硬盘，读取x-delay值，作为延迟时间
+- 返回routing not found结果给消息发送者
+- x-delay时间到期后，重新投递消息到指定队列
+
+##### 2.3.3.使用DelayExchange
+
+插件的使用也非常简单：声明一个交换机，交换机的类型可以是任意类型，只需要设定delayed属性为true即可，然后声明队列与其绑定即可。
+
+###### 1）声明DelayExchange交换机
+
+基于注解方式（推荐）：
+
+![image-20210718193747649](assets/image-20210718193747649.png)
+
+也可以基于@Bean的方式：
+
+![image-20210718193831076](assets/image-20210718193831076.png)
+
+###### 2）发送消息
+
+发送消息时，一定要携带x-delay属性，指定延迟的时间：
+
+![image-20210718193917009](assets/image-20210718193917009.png)
+
+##### 2.3.4.总结
+
+延迟队列插件的使用步骤包括哪些？
+
+•声明一个交换机，添加delayed属性为true
+
+•发送消息时，添加x-delay头，值为超时时间
+
+### 3.惰性队列
+
+#### 3.1.消息堆积问题
+
+当生产者发送消息的速度超过了消费者处理消息的速度，就会导致队列中的消息堆积，直到队列存储消息达到上限。之后发送的消息就会成为死信，可能会被丢弃，这就是消息堆积问题。
+
+
+
+![image-20210718194040498](assets/image-20210718194040498.png)
+
+解决消息堆积有两种思路：
+
+- 增加更多消费者，提高消费速度。也就是我们之前说的work queue模式
+- 扩大队列容积，提高堆积上限
+
+要提升队列容积，把消息保存在内存中显然是不行的。
+
+#### 3.2.惰性队列
+
+从RabbitMQ的3.6.0版本开始，就增加了Lazy Queues的概念，也就是惰性队列。惰性队列的特征如下：
+
+- 接收到消息后直接存入磁盘而非内存
+- 消费者要消费消息时才会从磁盘中读取并加载到内存
+- 支持数百万条的消息存储
+
+##### 3.2.1.基于命令行设置lazy-queue
+
+而要设置一个队列为惰性队列，只需要在声明队列时，指定x-queue-mode属性为lazy即可。可以通过命令行将一个运行中的队列修改为惰性队列：
+
+```sh
+rabbitmqctl set_policy Lazy "^lazy-queue$" '{"queue-mode":"lazy"}' --apply-to queues  
+```
+
+命令解读：
+
+- `rabbitmqctl` ：RabbitMQ的命令行工具
+- `set_policy` ：添加一个策略
+- `Lazy` ：策略名称，可以自定义
+- `"^lazy-queue$"` ：用正则表达式匹配队列的名字
+- `'{"queue-mode":"lazy"}'` ：设置队列模式为lazy模式
+- `--apply-to queues  `：策略的作用对象，是所有的队列
+
+##### 3.2.2.基于@Bean声明lazy-queue
+
+![image-20210718194522223](assets/image-20210718194522223.png)
+
+##### 3.2.3.基于@RabbitListener声明LazyQueue
+
+![image-20210718194539054](assets/image-20210718194539054.png)
+
+#### 3.3.总结
+
+消息堆积问题的解决方案？
+
+- 队列上绑定多个消费者，提高消费速度
+- 使用惰性队列，可以再mq中保存更多消息
+
+惰性队列的优点有哪些？
+
+- 基于磁盘存储，消息上限高
+- 没有间歇性的page-out，性能比较稳定
+
+惰性队列的缺点有哪些？
+
+- 基于磁盘存储，消息时效性会降低
+- 性能受限于磁盘的IO
+
+### 4.MQ集群
+
+#### 4.1.集群分类
+
+RabbitMQ的是基于Erlang语言编写，而Erlang又是一个面向并发的语言，天然支持集群模式。RabbitMQ的集群有两种模式：
+
+•**普通集群**：是一种分布式集群，将队列分散到集群的各个节点，从而提高整个集群的并发能力。
+
+•**镜像集群**：是一种主从集群，普通集群的基础上，添加了主从备份功能，提高集群的数据可用性。
+
+镜像集群虽然支持主从，但主从同步并不是强一致的，某些情况下可能有数据丢失的风险。因此在RabbitMQ的3.8版本以后，推出了新的功能：**仲裁队列**来代替镜像集群，底层采用Raft协议确保主从的数据一致性。
+
+#### 4.2.普通集群
+
+##### 4.2.1.集群结构和特征
+
+普通集群，或者叫标准集群（classic cluster），具备下列特征：
+
+- 会在集群的各个节点间共享部分数据，包括：交换机、队列元信息。不包含队列中的消息。
+- 当访问集群某节点时，如果队列不在该节点，会从数据所在节点传递到当前节点并返回
+- 队列所在节点宕机，队列中的消息就会丢失
+
+结构如图：
+
+![image-20210718220843323](assets/image-20210718220843323.png)
+
+##### 4.2.2.部署
+
+参考资料[《RabbitMQ部署指南.md》](./othermds/RabbitMQ部署指南.md)
+
+#### 4.3.镜像集群
+
+##### 4.3.1.集群结构和特征
+
+镜像集群：本质是主从模式，具备下面的特征：
+
+- 交换机、队列、队列中的消息会在各个mq的镜像节点之间同步备份。
+- 创建队列的节点被称为该队列的**主节点，**备份到的其它节点叫做该队列的**镜像**节点。
+- 一个队列的主节点可能是另一个队列的镜像节点
+- 所有操作都是主节点完成，然后同步给镜像节点
+- 主宕机后，镜像节点会替代成新的主
+
+结构如图：
+
+![image-20210718221039542](assets/image-20210718221039542.png)
+
+##### 4.3.2.部署
+
+参考资料[《RabbitMQ部署指南.md》](./othermds/RabbitMQ部署指南.md)
+
+#### 4.4.仲裁队列
+
+##### 4.4.1.集群特征
+
+仲裁队列：仲裁队列是3.8版本以后才有的新功能，用来替代镜像队列，具备下列特征：
+
+- 与镜像队列一样，都是主从模式，支持主从数据同步
+- 使用非常简单，没有复杂的配置
+- 主从同步基于Raft协议，强一致
+
+##### 4.4.2.部署
+
+参考资料[《RabbitMQ部署指南.md》](./othermds/RabbitMQ部署指南.md)
+
+##### 4.4.3.Java代码创建仲裁队列
+
+```java
+@Bean
+public Queue quorumQueue() {
+    return QueueBuilder
+        .durable("quorum.queue") // 持久化
+        .quorum() // 仲裁队列
+        .build();
+}
+```
+
+##### 4.4.4.SpringAMQP连接MQ集群
+
+注意，这里用address来代替host、port方式
+
+```yml
+spring:
+  rabbitmq:
+    addresses: 192.168.150.105:8071, 192.168.150.105:8072, 192.168.150.105:8073
+    username: itcast
+    password: 123321
+    virtual-host: /
+```
+
+------
+
+
+
+# 三. 面试篇
+
+## 1.微服务篇
+
+### 1.1.SpringCloud常见组件有哪些？
+
+**问题说明**：这个题目主要考察对SpringCloud的组件基本了解
+
+**难易程度**：简单
+
+**参考话术**：
+
+SpringCloud包含的组件很多，有很多功能是重复的。其中最常用组件包括：
+
+•注册中心组件：Eureka、Nacos等
+
+•负载均衡组件：Ribbon
+
+•远程调用组件：OpenFeign
+
+•网关组件：Zuul、Gateway
+
+•服务保护组件：Hystrix、Sentinel
+
+•服务配置管理组件：SpringCloudConfig、Nacos
+
+### 1.2.Nacos的服务注册表结构是怎样的？
+
+**问题说明**：考察对Nacos数据分级结构的了解，以及Nacos源码的掌握情况
+
+**难易程度**：一般
+
+**参考话术**：
+
+Nacos采用了数据的分级存储模型，最外层是Namespace，用来隔离环境。然后是Group，用来对服务分组。接下来就是服务（Service）了，一个服务包含多个实例，但是可能处于不同机房，因此Service下有多个集群（Cluster），Cluster下是不同的实例（Instance）。
+
+对应到Java代码中，Nacos采用了一个多层的Map来表示。结构为Map<String, Map<String, Service>>，其中最外层Map的key就是namespaceId，值是一个Map。内层Map的key是group拼接serviceName，值是Service对象。Service对象内部又是一个Map，key是集群名称，值是Cluster对象。而Cluster对象内部维护了Instance的集合。
+
+如图：
+
+![image-20210925215305446](assets/image-20210925215305446.png)
+
+### 1.3.Nacos如何支撑阿里内部数十万服务注册压力？
+
+**问题说明**：考察对Nacos源码的掌握情况
+
+**难易程度**：难
+
+**参考话术**：
+
+Nacos内部接收到注册的请求时，不会立即写数据，而是将服务注册的任务放入一个阻塞队列就立即响应给客户端。然后利用线程池读取阻塞队列中的任务，异步来完成实例更新，从而提高并发写能力。
+
+### 1.4.Nacos如何避免并发读写冲突问题？
+
+**问题说明**：考察对Nacos源码的掌握情况
+
+**难易程度**：难
+
+**参考话术**：
+
+Nacos在更新实例列表时，会采用CopyOnWrite技术，首先将旧的实例列表拷贝一份，然后更新拷贝的实例列表，再用更新后的实例列表来覆盖旧的实例列表。
+
+这样在更新的过程中，就不会对读实例列表的请求产生影响，也不会出现脏读问题了。
+
+### 1.5.Nacos与Eureka的区别有哪些？
+
+**问题说明**：考察对Nacos、Eureka的底层实现的掌握情况
+
+**难易程度**：难
+
+**参考话术**：
+
+Nacos与Eureka有相同点，也有不同之处，可以从以下几点来描述：
+
+- **接口方式**：Nacos与Eureka都对外暴露了Rest风格的API接口，用来实现服务注册、发现等功能
+- **实例类型**：Nacos的实例有永久和临时实例之分；而Eureka只支持临时实例
+- **健康检测**：Nacos对临时实例采用心跳模式检测，对永久实例采用主动请求来检测；Eureka只支持心跳模式
+- **服务发现**：Nacos支持定时拉取和订阅推送两种模式；Eureka只支持定时拉取模式
+
+### 1.6.Sentinel的限流与Gateway的限流有什么差别？
+
+**问题说明**：考察对限流算法的掌握情况
+
+**难易程度**：难
+
+**参考话术**：
+
+限流算法常见的有三种实现：滑动时间窗口、令牌桶算法、漏桶算法。Gateway则采用了基于Redis实现的令牌桶算法。
+
+而Sentinel内部却比较复杂：
+
+- 默认限流模式是基于滑动时间窗口算法
+- 排队等待的限流模式则基于漏桶算法
+- 而热点参数限流则是基于令牌桶算法
+
+### 1.7.Sentinel的线程隔离与Hystix的线程隔离有什么差别?
+
+**问题说明**：考察对线程隔离方案的掌握情况
+
+**难易程度**：一般
+
+**参考话术**：
+
+Hystix默认是基于线程池实现的线程隔离，每一个被隔离的业务都要创建一个独立的线程池，线程过多会带来额外的CPU开销，性能一般，但是隔离性更强。
+
+Sentinel是基于信号量（计数器）实现的线程隔离，不用创建线程池，性能较好，但是隔离性一般。
+
+## 2.MQ篇
+
+### 2.1.你们为什么选择了RabbitMQ而不是其它的MQ？
+
+如图：
+
+![image-20210925220034702](assets/image-20210925220034702.png)
+
+**话术：**
+
+kafka是以吞吐量高而闻名，不过其数据稳定性一般，而且无法保证消息有序性。我们公司的日志收集也有使用，业务模块中则使用的RabbitMQ。
+
+阿里巴巴的RocketMQ基于Kafka的原理，弥补了Kafka的缺点，继承了其高吞吐的优势，其客户端目前以Java为主。但是我们担心阿里巴巴开源产品的稳定性，所以就没有使用。
+
+RabbitMQ基于面向并发的语言Erlang开发，吞吐量不如Kafka，但是对我们公司来讲够用了。而且消息可靠性较好，并且消息延迟极低，集群搭建比较方便。支持多种协议，并且有各种语言的客户端，比较灵活。Spring对RabbitMQ的支持也比较好，使用起来比较方便，比较符合我们公司的需求。
+
+综合考虑我们公司的并发需求以及稳定性需求，我们选择了RabbitMQ。
+
+### 2.2.RabbitMQ如何确保消息的不丢失？
+
+**话术：**
+
+RabbitMQ针对消息传递过程中可能发生问题的各个地方，给出了针对性的解决方案：
+
+- 生产者发送消息时可能因为网络问题导致消息没有到达交换机：
+  - RabbitMQ提供了publisher confirm机制
+    - 生产者发送消息后，可以编写ConfirmCallback函数
+    - 消息成功到达交换机后，RabbitMQ会调用ConfirmCallback通知消息的发送者，返回ACK
+    - 消息如果未到达交换机，RabbitMQ也会调用ConfirmCallback通知消息的发送者，返回NACK
+    - 消息超时未发送成功也会抛出异常
+- 消息到达交换机后，如果未能到达队列，也会导致消息丢失：
+  - RabbitMQ提供了publisher return机制
+    - 生产者可以定义ReturnCallback函数
+    - 消息到达交换机，未到达队列，RabbitMQ会调用ReturnCallback通知发送者，告知失败原因
+- 消息到达队列后，MQ宕机也可能导致丢失消息：
+  - RabbitMQ提供了持久化功能，集群的主从备份功能
+    - 消息持久化，RabbitMQ会将交换机、队列、消息持久化到磁盘，宕机重启可以恢复消息
+    - 镜像集群，仲裁队列，都可以提供主从备份功能，主节点宕机，从节点会自动切换为主，数据依然在
+- 消息投递给消费者后，如果消费者处理不当，也可能导致消息丢失
+  - SpringAMQP基于RabbitMQ提供了消费者确认机制、消费者重试机制，消费者失败处理策略：
+    - 消费者的确认机制：
+      - 消费者处理消息成功，未出现异常时，Spring返回ACK给RabbitMQ，消息才被移除
+      - 消费者处理消息失败，抛出异常，宕机，Spring返回NACK或者不返回结果，消息不被异常
+    - 消费者重试机制：
+      - 默认情况下，消费者处理失败时，消息会再次回到MQ队列，然后投递给其它消费者。Spring提供的消费者重试机制，则是在处理失败后不返回NACK，而是直接在消费者本地重试。多次重试都失败后，则按照消费者失败处理策略来处理消息。避免了消息频繁入队带来的额外压力。
+    - 消费者失败策略：
+      - 当消费者多次本地重试失败时，消息默认会丢弃。
+      - Spring提供了Republish策略，在多次重试都失败，耗尽重试次数后，将消息重新投递给指定的异常交换机，并且会携带上异常栈信息，帮助定位问题。
+
+### 2.3.RabbitMQ如何避免消息堆积？
+
+**话术：**
+
+消息堆积问题产生的原因往往是因为消息发送的速度超过了消费者消息处理的速度。因此解决方案无外乎以下三点：
+
+- 提高消费者处理速度
+- 增加更多消费者
+- 增加队列消息存储上限
+
+1）提高消费者处理速度
+
+消费者处理速度是由业务代码决定的，所以我们能做的事情包括：
+
+- 尽可能优化业务代码，提高业务性能
+- 接收到消息后，开启线程池，并发处理多个消息
+
+优点：成本低，改改代码即可
+
+缺点：开启线程池会带来额外的性能开销，对于高频、低时延的任务不合适。推荐任务执行周期较长的业务。
+
+2）增加更多消费者
+
+一个队列绑定多个消费者，共同争抢任务，自然可以提供消息处理的速度。
+
+优点：能用钱解决的问题都不是问题。实现简单粗暴
+
+缺点：问题是没有钱。成本太高
+
+3）增加队列消息存储上限
+
+在RabbitMQ的1.8版本后，加入了新的队列模式：Lazy Queue
+
+这种队列不会将消息保存在内存中，而是在收到消息后直接写入磁盘中，理论上没有存储上限。可以解决消息堆积问题。
+
+优点：磁盘存储更安全；存储无上限；避免内存存储带来的Page Out问题，性能更稳定；
+
+缺点：磁盘存储受到IO性能的限制，消息时效性不如内存模式，但影响不大。
+
+### 2.4.RabbitMQ如何保证消息的有序性？
+
+**话术：**
+
+其实RabbitMQ是队列存储，天然具备先进先出的特点，只要消息的发送是有序的，那么理论上接收也是有序的。不过当一个队列绑定了多个消费者时，可能出现消息轮询投递给消费者的情况，而消费者的处理顺序就无法保证了。
+
+因此，要保证消息的有序性，需要做的下面几点：
+
+- 保证消息发送的有序性
+- 保证一组有序的消息都发送到同一个队列
+- 保证一个队列只包含一个消费者
+
+### 2.5.如何防止MQ消息被重复消费？
+
+**话术：**
+
+消息重复消费的原因多种多样，不可避免。所以只能从消费者端入手，只要能保证消息处理的幂等性就可以确保消息不被重复消费。
+
+而幂等性的保证又有很多方案：
+
+- 给每一条消息都添加一个唯一id，在本地记录消息表及消息状态，处理消息时基于数据库表的id唯一性做判断
+- 同样是记录消息表，利用消息状态字段实现基于乐观锁的判断，保证幂等
+- 基于业务本身的幂等性。比如根据id的删除、查询业务天生幂等；新增、修改等业务可以考虑基于数据库id唯一性、或者乐观锁机制确保幂等。本质与消息表方案类似。
+
+### 2.6.如何保证RabbitMQ的高可用？
+
+**话术：**
+
+要实现RabbitMQ的高可用无外乎下面两点：
+
+- 做好交换机、队列、消息的持久化
+- 搭建RabbitMQ的镜像集群，做好主从备份。当然也可以使用仲裁队列代替镜像集群。
+
+### 2.7.使用MQ可以解决那些问题？
+
+**话术：**
+
+RabbitMQ能解决的问题很多，例如：
+
+- 解耦合：将几个业务关联的微服务调用修改为基于MQ的异步通知，可以解除微服务之间的业务耦合。同时还提高了业务性能。
+- 流量削峰：将突发的业务请求放入MQ中，作为缓冲区。后端的业务根据自己的处理能力从MQ中获取消息，逐个处理任务。流量曲线变的平滑很多
+- 延迟队列：基于RabbitMQ的死信队列或者DelayExchange插件，可以实现消息发送后，延迟接收的效果。
+
+## 3.Redis篇
+
+### 3.1.Redis与Memcache的区别？
+
+- `redis支持更丰富的数据类型`（支持更复杂的应用场景）：Redis不仅仅支持简单的k/v类型的数据，同时还提供list，set，zset，hash等数据结构的存储。memcache支持简单的数据类型，String。
+- `Redis支持数据的持久化`，可以将内存中的数据保持在磁盘中，重启的时候可以再次加载进行使用,而Memecache把数据全部存在内存之中。
+- `集群模式`：memcached没有原生的集群模式，需要依靠客户端来实现往集群中分片写入数据；但是 redis 目前是原生支持 cluster 模式的.
+- `Redis使用单线程`：Memcached是多线程，非阻塞IO复用的网络模型；Redis使用单线程的多路 IO 复用模型。
+
+![1574821356723](assets/1574821356723.png)
+
+### 3.2.Redis的单线程问题
+
+**面试官**：Redis采用单线程，如何保证高并发？
+
+**面试话术**：
+
+Redis快的主要原因是：
+
+1. 完全基于内存
+2. 数据结构简单，对数据操作也简单
+3. 使用多路 I/O 复用模型，充分利用CPU资源
+
+**面试官**：这样做的好处是什么？
+
+**面试话术**：
+
+单线程优势有下面几点：
+
+- 代码更清晰，处理逻辑更简单
+- 不用去考虑各种锁的问题，不存在加锁释放锁操作，没有因为锁而导致的性能消耗
+- 不存在多进程或者多线程导致的CPU切换，充分利用CPU资源
+
+### 3.2.Redis的持久化方案由哪些？
+
+**相关资料：**
+
+1）RDB 持久化
+
+RDB持久化可以使用save或bgsave，为了不阻塞主进程业务，一般都使用bgsave，流程：
+
+- Redis 进程会 fork 出一个子进程（与父进程内存数据一致）。
+- 父进程继续处理客户端请求命令
+- 由子进程将内存中的所有数据写入到一个临时的 RDB 文件中。
+- 完成写入操作之后，旧的 RDB 文件会被新的 RDB 文件替换掉。
+
+下面是一些和 RDB 持久化相关的配置：
+
+- `save 60 10000`：如果在 60 秒内有 10000 个 key 发生改变，那就执行 RDB 持久化。
+- `stop-writes-on-bgsave-error yes`：如果 Redis 执行 RDB 持久化失败（常见于操作系统内存不足），那么 Redis 将不再接受 client 写入数据的请求。
+- `rdbcompression yes`：当生成 RDB 文件时，同时进行压缩。
+- `dbfilename dump.rdb`：将 RDB 文件命名为 dump.rdb。
+- `dir /var/lib/redis`：将 RDB 文件保存在`/var/lib/redis`目录下。
+
+　　当然在实践中，我们通常会将`stop-writes-on-bgsave-error`设置为`false`，同时让监控系统在 Redis 执行 RDB 持久化失败时发送告警，以便人工介入解决，而不是粗暴地拒绝 client 的写入请求。
+
+RDB持久化的优点：
+
+- RDB持久化文件小，Redis数据恢复时速度快
+- 子进程不影响父进程，父进程可以持续处理客户端命令
+- 子进程fork时采用copy-on-write方式，大多数情况下，没有太多的内存消耗，效率比较好。
+
+ RDB 持久化的缺点：
+
+- 子进程fork时采用copy-on-write方式，如果Redis此时写操作较多，可能导致额外的内存占用，甚至内存溢出
+- RDB文件压缩会减小文件体积，但通过时会对CPU有额外的消耗
+- 如果业务场景很看重数据的持久性 (durability)，那么不应该采用 RDB 持久化。譬如说，如果 Redis 每 5 分钟执行一次 RDB 持久化，要是 Redis 意外奔溃了，那么最多会丢失 5 分钟的数据。
+
+2）AOF 持久化
+
+　　可以使用`appendonly yes`配置项来开启 AOF 持久化。Redis 执行 AOF 持久化时，会将接收到的写命令追加到 AOF 文件的末尾，因此 Redis 只要对 AOF 文件中的命令进行回放，就可以将数据库还原到原先的状态。
+　　与 RDB 持久化相比，AOF 持久化的一个明显优势就是，它可以提高数据的持久性 (durability)。因为在 AOF 模式下，Redis 每次接收到 client 的写命令，就会将命令`write()`到 AOF 文件末尾。
+　　然而，在 Linux 中，将数据`write()`到文件后，数据并不会立即刷新到磁盘，而会先暂存在 OS 的文件系统缓冲区。在合适的时机，OS 才会将缓冲区的数据刷新到磁盘（如果需要将文件内容刷新到磁盘，可以调用`fsync()`或`fdatasync()`）。
+　　通过`appendfsync`配置项，可以控制 Redis 将命令同步到磁盘的频率：
+
+- `always`：每次 Redis 将命令`write()`到 AOF 文件时，都会调用`fsync()`，将命令刷新到磁盘。这可以保证最好的数据持久性，但却会给系统带来极大的开销。
+- `no`：Redis 只将命令`write()`到 AOF 文件。这会让 OS 决定何时将命令刷新到磁盘。
+- `everysec`：除了将命令`write()`到 AOF 文件，Redis 还会每秒执行一次`fsync()`。在实践中，推荐使用这种设置，一定程度上可以保证数据持久性，又不会明显降低 Redis 性能。
+
+　　然而，AOF 持久化并不是没有缺点的：Redis 会不断将接收到的写命令追加到 AOF 文件中，导致 AOF 文件越来越大。过大的 AOF 文件会消耗磁盘空间，并且导致 Redis 重启时更加缓慢。为了解决这个问题，在适当情况下，Redis 会对 AOF 文件进行重写，去除文件中冗余的命令，以减小 AOF 文件的体积。在重写 AOF 文件期间， Redis 会启动一个子进程，由子进程负责对 AOF 文件进行重写。
+　　可以通过下面两个配置项，控制 Redis 重写 AOF 文件的频率：
+
+- `auto-aof-rewrite-min-size 64mb`
+- `auto-aof-rewrite-percentage 100`
+
+　　上面两个配置的作用：当 AOF 文件的体积大于 64MB，并且 AOF 文件的体积比上一次重写之后的体积大了至少一倍，那么 Redis 就会执行 AOF 重写。
+
+优点：
+
+- 持久化频率高，数据可靠性高
+- 没有额外的内存或CPU消耗
+
+缺点：
+
+- 文件体积大
+- 文件大导致服务数据恢复时效率较低
+
+**面试话术：**
+
+Redis 提供了两种数据持久化的方式，一种是 RDB，另一种是 AOF。默认情况下，Redis 使用的是 RDB 持久化。
+
+RDB持久化文件体积较小，但是保存数据的频率一般较低，可靠性差，容易丢失数据。另外RDB写数据时会采用Fork函数拷贝主进程，可能有额外的内存消耗，文件压缩也会有额外的CPU消耗。
+
+ROF持久化可以做到每秒钟持久化一次，可靠性高。但是持久化文件体积较大，导致数据恢复时读取文件时间较长，效率略低
+
+### 3.3.Redis的集群方式有哪些？
+
+**面试话术：**
+
+Redis集群可以分为**主从集群**和**分片集群**两类。
+
+**主从集群**一般一主多从，主库用来写数据，从库用来读数据。结合哨兵，可以再主库宕机时从新选主，**目的是保证Redis的高可用**。
+
+**分片集群**是数据分片，我们会让多个Redis节点组成集群，并将16383个插槽分到不同的节点上。存储数据时利用对key做hash运算，得到插槽值后存储到对应的节点即可。因为存储数据面向的是插槽而非节点本身，因此可以做到集群动态伸缩。**目的是让Redis能存储更多数据。**
+
+1）主从集群
+
+主从集群，也是读写分离集群。一般都是一主多从方式。
+
+Redis 的复制（replication）功能允许用户根据一个 Redis 服务器来创建任意多个该服务器的复制品，其中被复制的服务器为主服务器（master），而通过复制创建出来的服务器复制品则为从服务器（slave）。
+
+只要主从服务器之间的网络连接正常，主从服务器两者会具有相同的数据，主服务器就会一直将发生在自己身上的数据更新同步 给从服务器，从而一直保证主从服务器的数据相同。
+
+- 写数据时只能通过主节点完成
+- 读数据可以从任何节点完成
+- 如果配置了`哨兵节点`，当master宕机时，哨兵会从salve节点选出一个新的主。
+
+主从集群分两种：
+
+![1574821993599](assets/1574821993599.png) ![1574822026037](assets/1574822026037.png) 
+
+带有哨兵的集群：
+
+![1574822077190](assets/1574822077190.png)
+
+2）分片集群
+
+主从集群中，每个节点都要保存所有信息，容易形成木桶效应。并且当数据量较大时，单个机器无法满足需求。此时我们就要使用分片集群了。
+
+![1574822184467](assets/1574822184467.png) 
+
+集群特征：
+
+- 每个节点都保存不同数据
+- 所有的redis节点彼此互联(PING-PONG机制),内部使用二进制协议优化传输速度和带宽.
+
+- 节点的fail是通过集群中超过半数的节点检测失效时才生效.
+
+- 客户端与redis节点直连,不需要中间proxy层连接集群中任何一个可用节点都可以访问到数据
+
+- redis-cluster把所有的物理节点映射到[0-16383]slot（插槽）上，实现动态伸缩
+
+为了保证Redis中每个节点的高可用，我们还可以给每个节点创建replication（slave节点），如图：
+
+![1574822584357](assets/1574822584357.png)
+
+出现故障时，主从可以及时切换：
+
+![1574822602109](assets/1574822602109.png)
+
+### 3.4.Redis的常用数据类型有哪些？
+
+支持多种类型的数据结构，主要区别是value存储的数据格式不同：
+
+- string：最基本的数据类型，二进制安全的字符串，最大512M。
+
+- list：按照添加顺序保持顺序的字符串列表。
+- set：无序的字符串集合，不存在重复的元素。
+- sorted set：已排序的字符串集合。
+- hash：key-value对格式
+
+### 3.5.聊一下Redis事务机制
+
+**相关资料：**
+
+参考：http://redisdoc.com/topic/transaction.html
+
+Redis事务功能是通过MULTI、EXEC、DISCARD和WATCH 四个原语实现的。Redis会将一个事务中的所有命令序列化，然后按顺序执行。但是Redis事务不支持回滚操作，命令运行出错后，正确的命令会继续执行。
+
+- `MULTI`: 用于开启一个事务，它总是返回OK。 MULTI执行之后，客户端可以继续向服务器发送任意多条命令，这些命令不会立即被执行，而是被放到一个**待执行命令队列**中
+- `EXEC`：按顺序执行命令队列内的所有命令。返回所有命令的返回值。事务执行过程中，Redis不会执行其它事务的命令。
+- `DISCARD`：清空命令队列，并放弃执行事务， 并且客户端会从事务状态中退出
+- `WATCH`：Redis的乐观锁机制，利用compare-and-set（CAS）原理，可以监控一个或多个键，一旦其中有一个键被修改，之后的事务就不会执行
+
+使用事务时可能会遇上以下两种错误：
+
+- 执行 EXEC 之前，入队的命令可能会出错。比如说，命令可能会产生语法错误（参数数量错误，参数名错误，等等），或者其他更严重的错误，比如内存不足（如果服务器使用 `maxmemory` 设置了最大内存限制的话）。
+  - Redis 2.6.5 开始，服务器会对命令入队失败的情况进行记录，并在客户端调用 EXEC 命令时，拒绝执行并自动放弃这个事务。
+- 命令可能在 EXEC 调用之后失败。举个例子，事务中的命令可能处理了错误类型的键，比如将列表命令用在了字符串键上面，诸如此类。
+  - 即使事务中有某个/某些命令在执行时产生了错误， 事务中的其他命令仍然会继续执行，不会回滚。
+
+为什么 Redis 不支持回滚（roll back）？
+
+以下是这种做法的优点：
+
+- Redis 命令只会因为错误的语法而失败（并且这些问题不能在入队时发现），或是命令用在了错误类型的键上面：这也就是说，从实用性的角度来说，失败的命令是由**编程错误**造成的，而这些错误应该在开发的过程中被发现，而不应该出现在生产环境中。
+- 因为不需要对回滚进行支持，所以 Redis 的内部可以保持简单且快速。
+
+鉴于没有任何机制能避免程序员自己造成的错误， 并且这类错误通常不会在生产环境中出现， 所以 Redis 选择了更简单、更快速的无回滚方式来处理事务。
+
+**面试话术：**
+
+Redis事务其实是把一系列Redis命令放入队列，然后批量执行，执行过程中不会有其它事务来打断。不过与关系型数据库的事务不同，Redis事务不支持回滚操作，事务中某个命令执行失败，其它命令依然会执行。
+
+为了弥补不能回滚的问题，Redis会在事务入队时就检查命令，如果命令异常则会放弃整个事务。
+
+因此，只要程序员编程是正确的，理论上说Redis会正确执行所有事务，无需回滚。
+
+面试官：如果事务执行一半的时候Redis宕机怎么办？
+
+Redis有持久化机制，因为可靠性问题，我们一般使用AOF持久化。事务的所有命令也会写入AOF文件，但是如果在执行EXEC命令之前，Redis已经宕机，则AOF文件中事务不完整。使用 `redis-check-aof` 程序可以移除 AOF 文件中不完整事务的信息，确保服务器可以顺利启动。
+
+### 3.6.Redis的Key过期策略
+
+#### 为什么需要内存回收？
+
+- 1、在Redis中，set指令可以指定key的过期时间，当过期时间到达以后，key就失效了；
+- 2、Redis是基于内存操作的，所有的数据都是保存在内存中，一台机器的内存是有限且很宝贵的。
+
+基于以上两点，为了保证Redis能继续提供可靠的服务，Redis需要一种机制清理掉不常用的、无效的、多余的数据，失效后的数据需要及时清理，这就需要内存回收了。
+
+Redis的内存回收主要分为过期删除策略和内存淘汰策略两部分。
+
+#### 过期删除策略
+
+删除达到过期时间的key。
+
+- 1）定时删除
+
+对于每一个设置了过期时间的key都会创建一个定时器，一旦到达过期时间就立即删除。该策略可以立即清除过期的数据，对内存较友好，但是缺点是占用了大量的CPU资源去处理过期的数据，会影响Redis的吞吐量和响应时间。
+
+- 2）惰性删除
+
+当访问一个key时，才判断该key是否过期，过期则删除。该策略能最大限度地节省CPU资源，但是对内存却十分不友好。有一种极端的情况是可能出现大量的过期key没有被再次访问，因此不会被清除，导致占用了大量的内存。
+
+> 在计算机科学中，懒惰删除（英文：lazy deletion）指的是从一个散列表（也称哈希表）中删除元素的一种方法。在这个方法中，删除仅仅是指标记一个元素被删除，而不是整个清除它。被删除的位点在插入时被当作空元素，在搜索之时被当作已占据。
+
+- 3）定期删除
+
+每隔一段时间，扫描Redis中过期key字典，并清除部分过期的key。该策略是前两者的一个折中方案，还可以通过调整定时扫描的时间间隔和每次扫描的限定耗时，在不同情况下使得CPU和内存资源达到最优的平衡效果。
+
+在Redis中，`同时使用了定期删除和惰性删除`。不过Redis定期删除采用的是随机抽取的方式删除部分Key，因此不能保证过期key 100%的删除。
+
+Redis结合了定期删除和惰性删除，基本上能很好的处理过期数据的清理，但是实际上还是有点问题的，如果过期key较多，定期删除漏掉了一部分，而且也没有及时去查，即没有走惰性删除，那么就会有大量的过期key堆积在内存中，导致redis内存耗尽，当内存耗尽之后，有新的key到来会发生什么事呢？是直接抛弃还是其他措施呢？有什么办法可以接受更多的key？
+
+#### 内存淘汰策略
+
+Redis的内存淘汰策略，是指内存达到maxmemory极限时，使用某种算法来决定清理掉哪些数据，以保证新数据的存入。
+
+Redis的内存淘汰机制包括：
+
+- noeviction: 当内存不足以容纳新写入数据时，新写入操作会报错。
+- allkeys-lru：当内存不足以容纳新写入数据时，在键空间（`server.db[i].dict`）中，移除最近最少使用的 key（这个是最常用的）。
+- allkeys-random：当内存不足以容纳新写入数据时，在键空间（`server.db[i].dict`）中，随机移除某个 key。
+- volatile-lru：当内存不足以容纳新写入数据时，在设置了过期时间的键空间（`server.db[i].expires`）中，移除最近最少使用的 key。
+- volatile-random：当内存不足以容纳新写入数据时，在设置了过期时间的键空间（`server.db[i].expires`）中，随机移除某个 key。
+- volatile-ttl：当内存不足以容纳新写入数据时，在设置了过期时间的键空间（`server.db[i].expires`）中，有更早过期时间的 key 优先移除。
+
+> 在配置文件中，通过maxmemory-policy可以配置要使用哪一个淘汰机制。
+
+什么时候会进行淘汰？
+
+Redis会在每一次处理命令的时候（processCommand函数调用freeMemoryIfNeeded）判断当前redis是否达到了内存的最大限制，如果达到限制，则使用对应的算法去处理需要删除的key。
+
+在淘汰key时，Redis默认最常用的是LRU算法（Latest Recently Used）。Redis通过在每一个redisObject保存lru属性来保存key最近的访问时间，在实现LRU算法时直接读取key的lru属性。
+
+具体实现时，Redis遍历每一个db，从每一个db中随机抽取一批样本key，默认是3个key，再从这3个key中，删除最近最少使用的key。
+
+**面试话术：**
+
+Redis过期策略包含定期删除和惰性删除两部分。定期删除是在Redis内部有一个定时任务，会定期删除一些过期的key。惰性删除是当用户查询某个Key时，会检查这个Key是否已经过期，如果没过期则返回用户，如果过期则删除。
+
+但是这两个策略都无法保证过期key一定删除，漏网之鱼越来越多，还可能导致内存溢出。当发生内存不足问题时，Redis还会做内存回收。内存回收采用LRU策略，就是最近最少使用。其原理就是记录每个Key的最近使用时间，内存回收时，随机抽取一些Key，比较其使用时间，把最老的几个删除。
+
+Redis的逻辑是：最近使用过的，很可能再次被使用
+
+### 3.7.Redis在项目中的哪些地方有用到?
+
+（1）共享session
+
+在分布式系统下，服务会部署在不同的tomcat，因此多个tomcat的session无法共享，以前存储在session中的数据无法实现共享，可以用redis代替session，解决分布式系统间数据共享问题。
+
+（2）数据缓存
+
+Redis采用内存存储，读写效率较高。我们可以把数据库的访问频率高的热点数据存储到redis中，这样用户请求时优先从redis中读取，减少数据库压力，提高并发能力。
+
+（3）异步队列
+
+Reids在内存存储引擎领域的一大优点是提供 list 和 set 操作，这使得Redis能作为一个很好的消息队列平台来使用。而且Redis中还有pub/sub这样的专用结构，用于1对N的消息通信模式。
+
+（4）分布式锁
+
+Redis中的乐观锁机制，可以帮助我们实现分布式锁的效果，用于解决分布式系统下的多线程安全问题
+
+### 3.8.Redis的缓存击穿、缓存雪崩、缓存穿透
+
+#### 1）缓存穿透
+
+参考资料：
+
+- 什么是缓存穿透
+  - 正常情况下，我们去查询数据都是存在。那么请求去查询一条压根儿数据库中根本就不存在的数据，也就是缓存和数据库都查询不到这条数据，但是请求每次都会打到数据库上面去。这种查询不存在数据的现象我们称为**缓存穿透**。
+- 穿透带来的问题
+  - 试想一下，如果有黑客会对你的系统进行攻击，拿一个不存在的id 去查询数据，会产生大量的请求到数据库去查询。可能会导致你的数据库由于压力过大而宕掉。
+
+- 解决办法
+  - 缓存空值：之所以会发生穿透，就是因为缓存中没有存储这些空数据的key。从而导致每次查询都到数据库去了。那么我们就可以为这些key对应的值设置为null 丢到缓存里面去。后面再出现查询这个key 的请求的时候，直接返回null 。这样，就不用在到数据库中去走一圈了，但是别忘了设置过期时间。
+  - BloomFilter（布隆过滤）：将所有可能存在的数据哈希到一个足够大的bitmap中，一个一定不存在的数据会被 这个bitmap拦截掉，从而避免了对底层存储系统的查询压力。在缓存之前在加一层 BloomFilter ，在查询的时候先去 BloomFilter 去查询 key 是否存在，如果不存在就直接返回，存在再走查缓存 -> 查 DB。
+
+**话术：**
+
+缓存穿透有两种解决方案：**其一**是把不存在的key设置null值到缓存中。**其二**是使用布隆过滤器，在查询缓存前先通过布隆过滤器判断key是否存在，存在再去查询缓存。
+
+设置null值可能被恶意针对，攻击者使用大量不存在的不重复key ，那么方案一就会缓存大量不存在key数据。此时我们还可以对Key规定格式模板，然后对不存在的key做**正则规范**匹配，如果完全不符合就不用存null值到redis，而是直接返回错误。
+
+#### 2）缓存击穿
+
+**相关资料**：
+
+- 什么是缓存击穿？
+
+key可能会在某些时间点被超高并发地访问，是一种非常“热点”的数据。这个时候，需要考虑一个问题：缓存被“击穿”的问题。
+
+当这个key在失效的瞬间，redis查询失败，持续的大并发就穿破缓存，直接请求数据库，就像在一个屏障上凿开了一个洞。
+
+- 解决方案：
+  - 使用互斥锁(mutex key)：mutex，就是互斥。简单地来说，就是在缓存失效的时候（判断拿出来的值为空），不是立即去load db，而是先使用Redis的SETNX去set一个互斥key，当操作返回成功时，再进行load db的操作并回设缓存；否则，就重试整个get缓存的方法。SETNX，是「SET if Not eXists」的缩写，也就是只有不存在的时候才设置，可以利用它来实现互斥的效果。
+  - 软过期：也就是逻辑过期，不使用redis提供的过期时间，而是业务层在数据中存储过期时间信息。查询时由业务程序判断是否过期，如果数据即将过期时，将缓存的时效延长，程序可以派遣一个线程去数据库中获取最新的数据，其他线程这时看到延长了的过期时间，就会继续使用旧数据，等派遣的线程获取最新数据后再更新缓存。
+
+推荐使用互斥锁，因为软过期会有业务逻辑侵入和额外的判断。
+
+**面试话术**：
+
+缓存击穿主要担心的是某个Key过期，更新缓存时引起对数据库的突发高并发访问。因此我们可以在更新缓存时采用互斥锁控制，只允许一个线程去更新缓存，其它线程等待并重新读取缓存。例如Redis的setnx命令就能实现互斥效果。
+
+#### 3）缓存雪崩
+
+**相关资料**：
+
+缓存雪崩，是指在某一个时间段，缓存集中过期失效。对这批数据的访问查询，都落到了数据库上，对于数据库而言，就会产生周期性的压力波峰。
+
+解决方案：
+
+- 数据分类分批处理：采取不同分类数据，缓存不同周期
+- 相同分类数据：采用固定时长加随机数方式设置缓存
+- 热点数据缓存时间长一些，冷门数据缓存时间短一些
+- 避免redis节点宕机引起雪崩，搭建主从集群，保证高可用
+
+**面试话术：**
+
+解决缓存雪崩问题的关键是让缓存Key的过期时间分散。因此我们可以把数据按照业务分类，然后设置不同过期时间。相同业务类型的key，设置固定时长加随机数。尽可能保证每个Key的过期时间都不相同。
+
+另外，Redis宕机也可能导致缓存雪崩，因此我们还要搭建Redis主从集群及哨兵监控，保证Redis的高可用。
+
+### 3.9.缓存冷热数据分离
+
+**背景资料**：
+
+Redis使用的是内存存储，当需要海量数据存储时，成本非常高。
+
+经过调研发现，当前主流DDR3内存和主流SATA SSD的单位成本价格差距大概在20倍左右，为了优化redis机器综合成本，我们考虑实现基于**热度统计 的数据分级存储**及数据在RAM/FLASH之间的动态交换，从而大幅度降低成本，达到性能与成本的高平衡。
+
+基本思路：基于key访问次数(LFU)的热度统计算法识别出热点数据，并将热点数据保留在redis中，对于无访问/访问次数少的数据则转存到SSD上，如果SSD上的key再次变热，则重新将其加载到redis内存中。
+
+目前流行的高性能磁盘存储，并且遵循Redis协议的方案包括：
+
+- SSDB：http://ssdb.io/zh_cn/
+- RocksDB：https://rocksdb.org.cn/
+
+因此，我们就需要在应用程序与缓存服务之间引入代理，实现Redis和SSD之间的切换，如图：
+
+![image-20200521115702956](assets/image-20200521115702956.png)
+
+这样的代理方案阿里云提供的就有。当然也有一些开源方案，例如：https://github.com/JingchengLi/swapdb
+
+### 3.10.Redis实现分布式锁
+
+分布式锁要满足的条件：
+
+- 多进程互斥：同一时刻，只有一个进程可以获取锁
+- 保证锁可以释放：任务结束或出现异常，锁一定要释放，避免死锁
+- 阻塞锁（可选）：获取锁失败时可否重试
+- 重入锁（可选）：获取锁的代码递归调用时，依然可以获取锁
+
+#### 1）最基本的分布式锁：
+
+利用Redis的setnx命令，这个命令的特征时如果多次执行，只有第一次执行会成功，可以实现`互斥`的效果。但是为了保证服务宕机时也可以释放锁，需要利用expire命令给锁设置一个有效期
+
+```
+setnx lock thread-01 # 尝试获取锁
+expire lock 10 # 设置有效期
+```
+
+**面试官问题1**：如果expire之前服务宕机怎么办？
+
+要保证setnx和expire命令的原子性。redis的set命令可以满足：
+
+```
+set key value [NX] [EX time] 
+```
+
+需要添加nx和ex的选项：
+
+- NX：与setnx一致，第一次执行成功
+- EX：设置过期时间
+
+**面试官问题2**：释放锁的时候，如果自己的锁已经过期了，此时会出现安全漏洞，如何解决？
+
+在锁中存储当前进程和线程标识，释放锁时对锁的标识判断，如果是自己的则删除，不是则放弃操作。
+
+但是这两步操作要保证原子性，需要通过Lua脚本来实现。
+
+```
+if redis.call("get",KEYS[1]) == ARGV[1] then
+    redis.call("del",KEYS[1])
+end
+```
+
+#### 2）可重入分布式锁
+
+如果有重入的需求，则除了在锁中记录进程标识，还要记录重试次数，流程如下：
+
+![1574824172228](assets/1574824172228.png) 
+
+下面我们假设锁的key为“`lock`”，hashKey是当前线程的id：“`threadId`”，锁自动释放时间假设为20
+
+获取锁的步骤：
+
+- 1、判断lock是否存在 `EXISTS lock`
+  - 存在，说明有人获取锁了，下面判断是不是自己的锁
+    - 判断当前线程id作为hashKey是否存在：`HEXISTS lock threadId`
+      - 不存在，说明锁已经有了，且不是自己获取的，锁获取失败，end
+      - 存在，说明是自己获取的锁，重入次数+1：`HINCRBY lock threadId 1`，去到步骤3
+  - 2、不存在，说明可以获取锁，`HSET key threadId 1`
+  - 3、设置锁自动释放时间，`EXPIRE lock 20`
+
+释放锁的步骤：
+
+- 1、判断当前线程id作为hashKey是否存在：`HEXISTS lock threadId`
+  - 不存在，说明锁已经失效，不用管了
+  - 存在，说明锁还在，重入次数减1：`HINCRBY lock threadId -1`，获取新的重入次数
+- 2、判断重入次数是否为0：
+  - 为0，说明锁全部释放，删除key：`DEL lock`
+  - 大于0，说明锁还在使用，重置有效时间：`EXPIRE lock 20`
+
+对应的Lua脚本如下：
+
+首先是获取锁：
+
+```lua
+local key = KEYS[1]; -- 锁的key
+local threadId = ARGV[1]; -- 线程唯一标识
+local releaseTime = ARGV[2]; -- 锁的自动释放时间
+
+if(redis.call('exists', key) == 0) then -- 判断是否存在
+	redis.call('hset', key, threadId, '1'); -- 不存在, 获取锁
+	redis.call('expire', key, releaseTime); -- 设置有效期
+	return 1; -- 返回结果
+end;
+
+if(redis.call('hexists', key, threadId) == 1) then -- 锁已经存在，判断threadId是否是自己	
+	redis.call('hincrby', key, threadId, '1'); -- 不存在, 获取锁，重入次数+1
+	redis.call('expire', key, releaseTime); -- 设置有效期
+	return 1; -- 返回结果
+end;
+return 0; -- 代码走到这里,说明获取锁的不是自己，获取锁失败
+```
+
+然后是释放锁：
+
+```lua
+local key = KEYS[1]; -- 锁的key
+local threadId = ARGV[1]; -- 线程唯一标识
+local releaseTime = ARGV[2]; -- 锁的自动释放时间
+
+if (redis.call('HEXISTS', key, threadId) == 0) then -- 判断当前锁是否还是被自己持有
+    return nil; -- 如果已经不是自己，则直接返回
+end;
+local count = redis.call('HINCRBY', key, threadId, -1); -- 是自己的锁，则重入次数-1
+
+if (count > 0) then -- 判断是否重入次数是否已经为0
+    redis.call('EXPIRE', key, releaseTime); -- 大于0说明不能释放锁，重置有效期然后返回
+    return nil;
+else
+    redis.call('DEL', key); -- 等于0说明可以释放锁，直接删除
+    return nil;
+end;
+```
+
+#### 3）高可用的锁
+
+`面试官问题`：redis分布式锁依赖与redis，如果redis宕机则锁失效。如何解决？
+
+此时大多数同学会回答说：搭建主从集群，做数据备份。
+
+这样就进入了陷阱，因为面试官的下一个问题就来了：
+
+`面试官问题`：如果搭建主从集群做数据备份时，进程A获取锁，master还没有把数据备份到slave，master宕机，slave升级为master，此时原来锁失效，其它进程也可以获取锁，出现安全问题。如何解决？
+
+关于这个问题，Redis官网给出了解决方案，使用RedLock思路可以解决：
+
+> 在Redis的分布式环境中，我们假设有N个Redis master。这些节点完全互相独立，不存在主从复制或者其他集群协调机制。之前我们已经描述了在Redis单实例下怎么安全地获取和释放锁。我们确保将在每（N)个实例上使用此方法获取和释放锁。在这个样例中，我们假设有5个Redis master节点，这是一个比较合理的设置，所以我们需要在5台机器上面或者5台虚拟机上面运行这些实例，这样保证他们不会同时都宕掉。
+>
+> 为了取到锁，客户端应该执行以下操作:
+>
+> 1. 获取当前Unix时间，以毫秒为单位。
+> 2. 依次尝试从N个实例，使用相同的key和随机值获取锁。在步骤2，当向Redis设置锁时,客户端应该设置一个网络连接和响应超时时间，这个超时时间应该小于锁的失效时间。例如你的锁自动失效时间为10秒，则超时时间应该在5-50毫秒之间。这样可以避免服务器端Redis已经挂掉的情况下，客户端还在死死地等待响应结果。如果服务器端没有在规定时间内响应，客户端应该尽快尝试另外一个Redis实例。
+> 3. 客户端使用当前时间减去开始获取锁时间（步骤1记录的时间）就得到获取锁使用的时间。当且仅当从大多数（这里是3个节点）的Redis节点都取到锁，并且使用的时间小于锁失效时间时，锁才算获取成功。
+> 4. 如果取到了锁，key的真正有效时间等于有效时间减去获取锁所使用的时间（步骤3计算的结果）。
+> 5. 如果因为某些原因，获取锁失败（*没有*在至少N/2+1个Redis实例取到锁或者取锁时间已经超过了有效时间），客户端应该在所有的Redis实例上进行解锁（即便某些Redis实例根本就没有加锁成功）。
+
+### 3.11.如何实现数据库与缓存数据一致？
+
+面试话术：
+
+实现方案有下面几种：
+
+- 本地缓存同步：当前微服务的数据库数据与缓存数据同步，可以直接在数据库修改时加入对Redis的修改逻辑，保证一致。
+- 跨服务缓存同步：服务A调用了服务B，并对查询结果缓存。服务B数据库修改，可以通过MQ通知服务A，服务A修改Redis缓存数据
+- 通用方案：使用Canal框架，伪装成MySQL的salve节点，监听MySQL的binLog变化，然后修改Redis缓存数据
+
+------
+
+> © 2023 iWyh2
