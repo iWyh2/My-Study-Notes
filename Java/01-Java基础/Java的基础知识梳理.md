@@ -2263,16 +2263,9 @@ main方法的执行就是一个单独的执行路径
     }
     ```
 
-<<<<<<< HEAD
-=======
-    
->>>>>>> e5e4669570559531accb2d50b48e9cadaca48b52
-
 
 
 **线程通信：**
-
-<<<<<<< HEAD
 就是线程之间相互发送数据，线程通信通常通过共享一个数据的方式实现
 
 线程间会根据共享数据的情况决定自己该怎么做，以及通知其他线程该怎么做
@@ -2434,60 +2427,206 @@ Java的线程状态：共定义了六种状态，被定义在了Thread类的内�
 
 ![](.\imgs\ThreadStatus.png)
 
-
-
-## 33. Java的网络编程
-=======
-**线程池：**
-
-**定时器：**
-
-**生命周期：**
-
-**并发：**
-
-**并行：**
+------
 
 
 
 
 
+## 33. Java的反射
 
->>>>>>> e5e4669570559531accb2d50b48e9cadaca48b52
+【概述】
 
+指对任何一个Class类，**在运行的时候可以直接得到这个类的全部成分**
 
+在运行时，可以直接得到：
 
+* 类的构造器对象：Constructor
+* 类的成员变量对象：Field
+* 类的成员方法对象：Method
 
+在运行时，【动态的获取类信息】和【动态地调用类中成分】
 
-
-
-
-
-
-
-
-
-
-
+反射的关键：第一步**获取编译后的Class类对象**，根据这个Class类对象去获取全部成分
 
 
 
+【获取Class类对象】
+
+```java
+//1.源代码阶段 :=> Class类的静态方法
+Class clazz = Class.forName(String className);//类的全限名
+//2.编译阶段 :=> 类名.class
+Class clazz = 类名.class;
+//3.Runtime运行时 :=> 对象.getClass()
+Class clazz = 对象.getClass();
+```
+
+
+
+【获取类中成分对象】
+
+1.获取构造器对象Constructor
+
+```java
+//Class类中方法 获取构造器
+getConstructors();//返回所有构造器对象的数组，只能拿public的
+getDeclareConstructors();//返回所有构造器对象的数组，所有存在的
+getConstructor(Class<?>... parameterTypes);//返回单个构造器对象，只能拿public的
+getDeclareConstructor();//返回单个构造器对象，存在就可以获取
+```
+
+构造器对象的作用：**初始化一个对象返回**
+
+```java
+//Constructor类中创建对象方法
+T newInstance(Object... initArgs);//根据指定的构造器创建对象
+public void setAccessible(boolean flag);//设置为true，表示取消访问检查，进行暴力反射，使私有构造器也可以使用
+```
+
+2.获取成员变量对象Field
+
+```java
+//Class类中方法 获取成员变量
+getFields();//返回所有成员变量对象的数组，只能拿public的
+getDeclareFields();//返回所有成员变量对象的数组，所有存在的
+getField(String name);//返回单个成员变量对象，只能拿public的
+getDeclareField(String name);//返回单个成员变量对象，存在就可以获取
+```
+
+成员变量对象的作用：**为【该类的对象】的【该成员变量】做取值和赋值**
+
+```java
+//Field类方法 取值和赋值
+void set(Object obj,Object value);//赋值
+Object get(Object obj);//获取值
+public void setAccessible(boolean flag);//设置为true，表示取消访问检查，进行暴力反射，使私有成员变量也可以取值和赋值
+```
+
+3.获取成员方法对象Method
+
+```java
+//Class类中方法 获取成员方法
+getMethods();//返回所有成员方法对象的数组，只能拿public的
+getDeclareMethods();//返回所有成员方法对象的数组，所有存在的
+getMethod(String name, Class<?>... parameterTypes);//返回单个成员方法对象，只能拿public的
+getDeclareMethod(String name, Class<?>... parameterTypes);//返回单个成员方法对象，存在就可以获取
+```
+
+成员方法对象作用：**调度【该类的对象】执行此方法**
+
+```java
+//Method类方法 触发执行
+Object invoke(Object obj, Object... args);//运行方法；
+//参数一：该类的对象,用该类的对象调用方法。参数二：调用方法需要传递的参数，没有则不写。返回值：方法的返回值（没有就为null）
+public void setAccessible(boolean flag);//设置为true，表示取消访问检查，进行暴力反射，使私有成员方法也可以被运行
+```
+
+
+
+【反射作用】
+
+1.绕过编译阶段为集合添加任意类型数据
+
+* 反射是**运行时**技术，**此时集合的泛型不能产生约束**，**可以为集合加入任意类型的元素**
+* 泛型**只是在编译阶段约束集合**只能操作某种数据类型。**编译成Class字节码文件进入运行时阶段时，泛型都被擦除了**
+
+2.**做通用框架**
 
 
 
 
 
+## 34. Java的注解
+
+【概述】
+
+Java注解（Annotation）又称Java标注，JDK5.0开始引入的注释机制
+
+Java语言中的类、构造器、方法、成员变量、参数等，都可以被注解标注
 
 
 
+【作用】
+
+对Java中类、构造器、方法、成员变量、参数等做标记，然后进行特殊处理（由业务决定）
 
 
 
+【自定义注解】
+
+```java
+//格式
+public @interface 注解名称 {
+    public 属性类型 属性名() default 默认值;
+}
+```
+
+注解属性类型：
+
+① 基本数据类型 : byte , short , int , long , float , double , char , boolean ;
+
+② 字符串类型 : String ;
+
+③ 枚举类型 : enum ;
+
+④ 注解类型: @xxx ;
+
+⑤ 以上类型的数组形式 ;
+
+特殊属性：value
+
+* 当属性名为value，只使用value属性时，可以省略value名称不写；使用多个属性时，需要指定属性名
+
+默认值：
+
+注解属性 指定了默认值 ,  在使用注解时 , 可以选择不为该属性赋值 ( 此时使用默认属性值 ) , 也可以进行赋值 ( 指定一个新的属性值 ) 
+
+如果 注解属性 没有指定默认值 , 则使用 注解 时 , 必须为其指定一个默认值 , 否则编译时报错
 
 
 
+【元注解】
+
+放在(自定义)注解上的注解
+
+@Target：约束自定义注解只能在哪些地方使用
+
+* 常用值：ElementType枚举类
+  * TYPE：类，接口
+  * FIELD：成员变量
+  * METHOD：成员方法
+  * PARAMETER：方法参数
+  * CONSTRUCTOR：构造器
+  * LOCAL_VARIABLE：局部变量
+
+@Retention：申明注解的生命周期
+
+* 常用值：RetentionPolicy枚举类
+  * SOURCE：注解只作用在源码阶段，生成的字节码文件中不存在
+  * CLASS：注解作用在源码阶段、字节码文件阶段，运行阶段不存在，为默认值
+  * RUNTIME：注解作用在源码阶段、字节码文件阶段、运行阶段
 
 
 
+【**注解解析**】
 
+注解的使用和操作，需要进行注解解析
 
+注解解析就是判断是否存在某注解，存在就解析出注解内容
+
+与注解解析相关的接口：
+
+* Annotation：注解的顶级接口，注解都是Annotation类型的对象
+* AnnotationElement：定义了注解解析的各解析方法
+
+```java
+//AnnotationElement中的方法
+Annotation[] getDeclaredAnnotations();//获得当前对象上使用的所有注解，返回注解数组
+T getDeclaredAnnotation(Class<?> annotationClass);//根据注解类型获得注解对象
+boolean isAnnotationPresent(Class<Annotation> annotationClass);//判断当前对象是否使用了指定的注解，如果使用了返回true，没有返回false
+```
+
+所有的类成分，Class，Constructor，Method，Field等，都实现了AnnotationElement接口，拥有以上注解解析能力
+
+注解解析技巧：注解在哪个成分上就先拿哪个类成分

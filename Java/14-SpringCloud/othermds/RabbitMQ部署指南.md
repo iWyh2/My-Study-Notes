@@ -30,7 +30,7 @@ docker load -i mq.tar
 
 ```sh
 docker run \
- -e RABBITMQ_DEFAULT_USER=itcast \
+ -e RABBITMQ_DEFAULT_USER=iWyh2 \
  -e RABBITMQ_DEFAULT_PASS=123321 \
  -v mq-plugins:/plugins \
  --name mq \

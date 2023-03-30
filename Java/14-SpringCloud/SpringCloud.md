@@ -2024,13 +2024,13 @@ Docker和虚拟机的差异：
 
 Docker中有几个重要的概念：
 
-**镜像（Image）**：Docker将应用程序及其所需的依赖、函数库、环境、配置等文件打包在一起，称为镜像。
+**镜像（Image）**：Docker**将应用程序及其所需的依赖、函数库、环境、配置等文件打包在一起**，称为镜像。
 
-**容器（Container）**：镜像中的应用程序运行后形成的进程就是**容器**，只是Docker会给容器进程做隔离，对外不可见。
+**容器（Container）**：镜像中的应用**程序运行后形成的进程**就是**容器**，只是Docker会给容器进程做隔离，对外不可见。
 
 一切应用最终都是代码组成，都是硬盘中的一个个的字节形成的**文件**。只有运行时，才会加载到内存，形成进程。
 
-而**镜像**，就是把一个应用在硬盘上的文件、及其运行环境、部分系统函数库文件一起打包形成的文件包。这个文件包是只读的。
+而**镜像**，就是把一个应用在硬盘上的文件、及其运行环境、部分系统函数库文件一起打包形成的文件包。这个**文件包是只读的**。
 
 **容器**呢，就是将这些文件中编写的程序、函数加载到内存中允许，形成进程，只不过要隔离起来。因此一个镜像可以启动多次，形成多个容器进程。
 
@@ -2079,7 +2079,11 @@ Docker结构：
 
 DockerHub：
 
-- 一个镜像托管的服务器，类似的还有阿里云镜像服务，统称为DockerRegistry
+- 一个镜像托管的服务器，类似的还有阿里云镜像服务，统称为Docker Registry
+
+安装Docker
+
+参考资料[《CentOS7安装Docker.md》](./othermds/CentOS7安装Docker.md)
 
 ### 9.4.Docker的基本操作
 
@@ -2090,7 +2094,7 @@ DockerHub：
 首先来看下镜像的名称组成：
 
 - 镜名称一般分两部分组成：[repository]:[tag]。
-- 在没有指定tag时，默认是latest，代表最新版本的镜像
+- 在**没有指定tag时，默认是latest，代表最新版本的镜像**
 
 如图：
 
@@ -2215,7 +2219,7 @@ docker load -i nginx.tar
 
 ##### 9.4.2.2.案例-创建并运行一个容器
 
-创建并运行nginx容器的命令：
+创建并运行nginx容器的命令：（可以去DockerHub查看容器的运行命令）
 
 ```sh
 docker run --name containerName -p 80:80 -d nginx
@@ -2225,7 +2229,7 @@ docker run --name containerName -p 80:80 -d nginx
 
 - docker run ：创建并运行一个容器
 - --name : 给容器起一个名字，比如叫做mn
-- -p ：将宿主机端口与容器端口映射，冒号左侧是宿主机端口，右侧是容器端口
+- -p ：将宿主机端口与容器**端口映射**，**冒号左侧是宿主机端口，右侧是容器端口**
 - -d：后台运行容器
 - nginx：镜像名称，例如nginx
 
@@ -2233,9 +2237,17 @@ docker run --name containerName -p 80:80 -d nginx
 
 默认情况下，容器是隔离环境，我们直接访问宿主机的80端口，肯定访问不到容器中的nginx。
 
-现在，将容器的80与宿主机的80关联起来，当我们访问宿主机的80端口时，就会被映射到容器的80，这样就能访问到nginx了：
+现在，**将容器的80与宿主机的80关联起来，当我们访问宿主机的80端口时，就会被映射到容器的80**，这样就能访问到nginx了：【端口映射】
 
 ![image-20210731163255863](./imgs/image-20210731163255863.png)
+
+查看容器运行日志：
+
+```shell
+docker logs (-f) mn
+```
+
+* `-f`：持续查看容器日志
 
 ##### 9.4.2.3.案例-进入容器，修改文件
 
@@ -2260,7 +2272,7 @@ docker exec -it mn bash
 
 2）进入nginx的HTML所在目录 /usr/share/nginx/html
 
-容器内部会模拟一个独立的Linux文件系统，看起来如同一个linux服务器一样：
+**容器内部会模拟一个独立的Linux文件系统，看起来如同一个linux服务器一样**：
 
 ![image-20210731164159811](./imgs/image-20210731164159811.png)
 
@@ -2280,7 +2292,7 @@ cd /usr/share/nginx/html
 
 3）修改index.html的内容
 
-容器内没有vi命令，无法直接修改，我们用下面的命令来修改：
+**容器内没有vi命令，无法直接修改**，我们用下面的命令来修改：
 
 ```sh
 sed -i -e 's#Welcome to nginx#传智教育欢迎您#g' -e 's#<head>#<head><meta charset="utf-8">#g' index.html
@@ -2289,6 +2301,24 @@ sed -i -e 's#Welcome to nginx#传智教育欢迎您#g' -e 's#<head>#<head><meta 
 在浏览器访问自己的虚拟机地址，例如我的是：http://192.168.150.101，即可看到结果：
 
 ![image-20210731164717604](./imgs/image-20210731164717604.png)
+
+退出容器：
+
+```shell
+exit
+```
+
+停止容器：
+
+```shell
+docker stop mn
+```
+
+查看所有容器，包括停止的容器
+
+```shell
+docker ps -a
+```
 
 ##### 9.4.2.4.小结
 
@@ -2308,6 +2338,11 @@ docker run命令的常见参数有哪些？
 - docker ps
 - docker ps -a 查看所有容器，包括已经停止的
 
+进入容器：
+
+* docker exec -it 容器名 要执行的命令
+* exec命令可以进入容器修改文件，但是不推荐
+
 #### 9.4.3.数据卷（容器数据管理）
 
 在之前的nginx案例中，修改nginx的html页面时，需要进入nginx内部。并且因为没有编辑器，修改文件也很麻烦。
@@ -2320,11 +2355,11 @@ docker run命令的常见参数有哪些？
 
 ##### 9.4.3.1.什么是数据卷
 
-**数据卷（volume）**是一个虚拟目录，指向宿主机文件系统中的某个目录。
+**数据卷（volume）**是一个虚拟目录，**指向宿主机文件系统中的某个目录**，一般是宿主机的**/var/lib/docker/volumes**
 
 ![image-20210731173541846](./imgs/image-20210731173541846.png)
 
-一旦完成数据卷挂载，对容器的一切操作都会作用在数据卷对应的宿主机目录了。
+**一旦完成数据卷挂载，对容器的一切操作都会作用在数据卷对应的宿主机目录了**
 
 这样，我们操作宿主机的/var/lib/docker/volumes/html目录，就等于操作容器内的/usr/share/nginx/html目录了
 
@@ -2380,7 +2415,7 @@ docker volume inspect html
 
 数据卷的作用：
 
-- 将容器与数据分离，解耦合，方便操作容器内数据，保证数据安全
+- **将容器与数据分离，解耦合，方便操作容器内数据，保证数据安全**
 
 数据卷操作：
 
@@ -2392,7 +2427,7 @@ docker volume inspect html
 
 ##### 9.4.3.4.挂载数据卷
 
-我们在创建容器时，可以通过 -v 参数来挂载一个数据卷到某个容器内目录，命令格式如下：
+我们在创建容器时，可以通过 **-v 参数来挂载一个数据卷到某个容器内目录**，命令格式如下：
 
 ```sh
 docker run \
@@ -2404,7 +2439,7 @@ docker run \
 
 这里的-v就是挂载数据卷的命令：
 
-- `-v html:/root/htm` ：把html数据卷挂载到容器内的/root/html这个目录中
+- `-v html:/root/htm` ：**把html数据卷挂载到容器内的/root/html这个目录中**
 
 ##### 9.4.3.5.案例-给nginx挂载数据卷
 
@@ -2433,9 +2468,11 @@ cd /var/lib/docker/volumes/html/_data
 vi index.html
 ```
 
+**数据卷未创建，那么在-v参数设置的数据卷会自动创建**
+
 ##### 9.4.3.6.案例-给MySQL挂载本地目录
 
-容器不仅仅可以挂载数据卷，也可以直接挂载到宿主机目录上。关联关系如下：
+**容器不仅仅可以挂载数据卷，也可以直接挂载到宿主机目录上**。关联关系如下：
 
 - 带数据卷模式：宿主机目录 --> 数据卷 ---> 容器内目录
 - 直接挂载模式：宿主机目录 ---> 容器内目录
@@ -2469,6 +2506,15 @@ vi index.html
 
 ③ 设置MySQL密码
 
+```shell
+docker run --name Mymysql -e MYSQL_ROOT_PASSWORD=root \
+-v /tmp/mysql/conf/hmy.cnf:/etc/mysql/conf.d/hmy.cnf \
+-v /tmp/mysql/data:/var/lib/mysql \
+-p 3306:3306 \
+-d \
+mysql:5.7.25
+```
+
 ##### 9.4.3.7.小结
 
 docker run的命令中通过 -v 参数挂载文件或目录到容器中：
@@ -2484,13 +2530,13 @@ docker run的命令中通过 -v 参数挂载文件或目录到容器中：
 
 ### 9.5.Dockerfile自定义镜像
 
-常见的镜像在DockerHub就能找到，但是我们自己写的项目就必须自己构建镜像了。
+常见的镜像在DockerHub就能找到，但是我们**自己写的项目就必须自己构建镜像了**。
 
 而要自定义镜像，就必须先了解镜像的结构才行。
 
 #### 9.5.1.镜像结构
 
-镜像是将应用程序及其需要的系统函数库、环境、配置、依赖打包而成。
+**镜像是将应用程序及其需要的系统函数库、环境、配置、依赖打包而成**。
 
 我们以MySQL为例，来看看镜像的组成结构：
 
@@ -2508,7 +2554,7 @@ docker run的命令中通过 -v 参数挂载文件或目录到容器中：
 
 而描述上述信息的文件就是Dockerfile文件。
 
-**Dockerfile**就是一个文本文件，其中包含一个个的**指令(Instruction)**，用指令来说明要执行什么操作来构建镜像。每一个指令都会形成一层Layer。
+**Dockerfile**就是一个文本文件，其中包含一个个的**指令(Instruction)**，**用指令来说明要执行什么操作来构建镜像**。**每一个指令都会形成一层Layer**。
 
 ![image-20210731180321133](./imgs/image-20210731180321133.png)
 
@@ -2573,15 +2619,15 @@ docker run的命令中通过 -v 参数挂载文件或目录到容器中：
   docker build -t javaweb:1.0 .
   ```
 
-最后访问 http://192.168.150.101:8090/hello/count，其中的ip改成你的虚拟机ip
+最后访问 http://192.168.88.92:8090/hello/count，其中的ip改成你的虚拟机ip
 
 ##### 9.5.3.2.基于java8构建Java项目
 
-虽然我们可以基于Ubuntu基础镜像，添加任意自己需要的安装包，构建镜像，但是却比较麻烦。所以大多数情况下，我们都可以在一些安装了部分软件的基础镜像上做改造。
+虽然我们可以基于Ubuntu基础镜像，添加任意自己需要的安装包，构建镜像，但是却比较麻烦。所以大多数情况下，我们都**可以在一些安装了部分软件的基础镜像上做改造**。
 
 例如，构建java项目的镜像，可以在已经准备了JDK的基础镜像基础上构建。
 
-需求：基于java:8-alpine镜像，将一个Java项目构建为镜像
+需求：**基于java:8-alpine镜像**，将一个Java项目构建为镜像
 
 实现思路如下：
 
@@ -2602,9 +2648,13 @@ docker run的命令中通过 -v 参数挂载文件或目录到容器中：
     内容如下：
 
     ```dockerfile
+    # 指定基础镜像
     FROM java:8-alpine
+    # 拷贝java项目的包
     COPY ./app.jar /tmp/app.jar
+    # 暴露端口
     EXPOSE 8090
+    # 入口，java项目的启动命令
     ENTRYPOINT java -jar /tmp/app.jar
     ```
 
@@ -2622,26 +2672,26 @@ docker run的命令中通过 -v 参数挂载文件或目录到容器中：
 
 ### 9.6.Docker-Compose
 
-Docker Compose可以基于Compose文件帮我们快速的部署分布式应用，而无需手动一个个创建和运行容器！
+Docker Compose可以基于Compose文件**帮我们快速的部署分布式应用，而无需手动一个个创建和运行容器**！
 
 ![image-20210731180921742](./imgs/image-20210731180921742.png)
 
-#### 9.6.1.初识DockerCompose
+#### 9.6.1.初识Docker-Compose
 
-Compose文件是一个文本文件，通过指令定义集群中的每个容器如何运行。格式如下：
+**Compose文件是一个文本文件，通过指令定义集群中的【每个容器如何运行】**。格式如下：
 
-```json
+```yml
 version: "3.8"
- services:
-  mysql:
-    image: mysql:5.7.25
+services: # 定义每个具体的容器
+  mysql: # 容器1名称
+    image: mysql:5.7.25 # 镜像名称
     environment:
      MYSQL_ROOT_PASSWORD: 123 
     volumes:
      - "/tmp/mysql/data:/var/lib/mysql"
      - "/tmp/mysql/conf/hmy.cnf:/etc/mysql/conf.d/hmy.cnf"
-  web:
-    build: .
+  web: # 容器2
+    build: . # 临时构建镜像创建容器 指定DockerFile文件夹所在目录 此处为当前目录
     ports:
      - "8090:8090"
 ```
@@ -2657,7 +2707,7 @@ DockerCompose的详细语法参考官网：https://docs.docker.com/compose/compo
 
 #### 9.6.2.安装DockerCompose
 
-参考课前资料
+参考[《CentOS7安装Docker.md》](./othermds/CentOS7安装Docker.md)
 
 #### 9.6.3.部署微服务集群
 
@@ -2665,7 +2715,7 @@ DockerCompose的详细语法参考官网：https://docs.docker.com/compose/compo
 
 **实现思路**：
 
-① 查看课前资料提供的cloud-demo文件夹，里面已经编写好了docker-compose文件
+① 查看资料提供的cloud-demo文件夹，里面已经编写好了docker-compose文件
 
 ② 修改自己的cloud-demo项目，将数据库、nacos地址都命名为docker-compose中的服务名
 
@@ -2885,7 +2935,7 @@ docker pull 192.168.150.101:8080/nginx:1.0
 
 #### 10.1.1.同步通讯
 
-我们之前学习的Feign调用就属于同步方式，虽然调用可以实时得到结果，但存在下面的问题：
+我们之前学习的**Feign调用就属于同步方式**，虽然调用可以实时得到结果，但存在下面的问题：
 
 ![image-20210717162004285](./imgs/image-20210717162004285.png)
 
@@ -2904,7 +2954,7 @@ docker pull 192.168.150.101:8080/nginx:1.0
 
 #### 10.1.2.异步通讯
 
-异步调用则可以避免上述问题：
+**异步调用则可以避免上述问题**：（异步调用常见的实现就是事件驱动模式）
 
 我们以购买商品为例，用户支付后需要调用订单服务完成订单状态修改，调用物流服务，从仓库分配响应的库存并准备发货。
 
@@ -2923,7 +2973,7 @@ Broker 是一个像数据总线一样的东西，所有的服务要接收数据�
 - 吞吐量提升：无需等待订阅者处理完成，响应更快速
 - 故障隔离：服务没有直接调用，不存在级联失败问题
 - 调用间没有阻塞，不会造成无效的资源占用
-- 耦合度极低，每个服务都可以灵活插拔，可替换
+- 服务解耦：耦合度极低，每个服务都可以灵活插拔，可替换
 - 流量削峰：不管发布事件的流量波动多大，都由Broker接收，订阅者可以按照自己的速度去处理事件
 
 缺点：
@@ -2933,9 +2983,9 @@ Broker 是一个像数据总线一样的东西，所有的服务要接收数据�
 
 好在现在开源软件或云平台上 Broker 的软件是非常成熟的，比较常见的一种就是我们今天要学习的MQ技术。
 
-### 10.2.技术对比：
+### 10.2.技术对比
 
-MQ，中文是消息队列（MessageQueue），字面来看就是存放消息的队列。也就是事件驱动架构中的Broker。
+MQ，中文是消息队列（MessageQueue），字面来看就是存放消息的队列。也**就是事件驱动架构中的Broker**。
 
 比较常见的MQ实现：
 
@@ -2983,6 +3033,7 @@ RabbitMQ中的一些角色：
 - exchange个：交换机，负责消息路由
 - queue：队列，存储消息
 - virtualHost：虚拟主机，隔离不同租户的exchange、queue、消息的隔离
+- channel：操作MQ的工具
 
 #### 10.3.2.RabbitMQ消息模型
 
@@ -3132,18 +3183,18 @@ public class ConsumerTest {
 
 #### 10.3.5.总结
 
-基本消息队列的消息发送流程：
+基本消息队列的消息发送流程：（Publisher）
 
 1. 建立connection
 2. 创建channel
 3. 利用channel声明队列
 4. 利用channel向队列发送消息
 
-基本消息队列的消息接收流程：
+基本消息队列的消息接收流程：（Consumer）
 
 1. 建立connection
 2. 创建channel
-3. 利用channel声明队列
+3. 利用channel声明队列（重复声明，防止队列未声明，保险策略）
 4. 定义consumer的消费行为handleDelivery()
 5. 利用channel将消费者与队列绑定
 
@@ -3182,10 +3233,10 @@ SpringAMQP提供了三个功能：
 ```yaml
 spring:
   rabbitmq:
-    host: 192.168.150.101 # 主机名
+    host: 192.168.88.92 # 主机名
     port: 5672 # 端口
     virtual-host: / # 虚拟主机
-    username: itcast # 用户名
+    username: iWyh2 # 用户名
     password: 123321 # 密码
 ```
 
@@ -3227,10 +3278,10 @@ public class SpringAmqpTest {
 ```yaml
 spring:
   rabbitmq:
-    host: 192.168.150.101 # 主机名
+    host: 192.168.88.92 # 主机名
     port: 5672 # 端口
     virtual-host: / # 虚拟主机
-    username: itcast # 用户名
+    username: iWyh2 # 用户名
     password: 123321 # 密码
 ```
 
@@ -3244,7 +3295,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SpringRabbitListener {
-
     @RabbitListener(queues = "simple.queue")
     public void listenSimpleQueueMessage(String msg) throws InterruptedException {
         System.out.println("spring 消费者接收到消息：【" + msg + "】");
@@ -3264,7 +3314,7 @@ Work queues，也被称为（Task queues），任务模型。简单来说就是*
 
 当消息处理比较耗时的时候，可能生产消息的速度会远远大于消息的消费速度。长此以往，消息就会堆积越来越多，无法及时处理。
 
-此时就可以使用work 模型，多个消费者共同处理消息处理，速度就能大大提高了。
+此时就可以使用work 模型，**多个消费者共同处理消息处理，速度就能大大提高**了。
 
 ##### 10.4.2.1.消息发送
 
@@ -3317,7 +3367,7 @@ public void listenWorkQueue2(String msg) throws InterruptedException {
 
 可以看到消费者1很快完成了自己的25条消息。消费者2却在缓慢的处理自己的25条消息。
 
-也就是说消息是平均分配给每个消费者，并没有考虑到消费者的处理能力。这样显然是有问题的。
+也就是说**消息是平均分配给每个消费者，并没有考虑到消费者的处理能力。这样显然是有问题的**。
 
 ##### 10.4.2.4.能者多劳
 
@@ -3330,6 +3380,8 @@ spring:
       simple:
         prefetch: 1 # 每次只能获取一条消息，处理完成才能获取下一个消息
 ```
+
+* prefetch：控制预取消息的上限；处理完了才可以拉取下一条消息（所以处理快的就多处理，处理慢的就少处理）
 
 ##### 10.4.2.5.总结
 
@@ -3346,8 +3398,8 @@ Work模型的使用：
 
 可以看到，在订阅模型中，多了一个exchange角色，而且过程略有变化：
 
-- Publisher：生产者，也就是要发送消息的程序，但是不再发送到队列中，而是发给X（交换机）
-- Exchange：交换机，图中的X。一方面，接收生产者发送的消息。另一方面，知道如何处理消息，例如递交给某个特别队列、递交给所有队列、或是将消息丢弃。到底如何操作，取决于Exchange的类型。Exchange有以下3种类型：
+- Publisher：生产者，也就是要发送消息的程序，但是不再发送到队列中，而是发给交换机
+- Exchange：交换机。一方面，接收生产者发送的消息。另一方面，知道如何处理消息，例如递交给某个特别队列、递交给所有队列、或是将消息丢弃。到底如何操作，取决于Exchange的类型。Exchange有以下3种类型：
   - Fanout：广播，将消息交给所有绑定到交换机的队列
   - Direct：定向，把消息交给符合指定routing key 的队列
   - Topic：通配符，把消息交给符合routing pattern（路由模式） 的队列
@@ -3558,6 +3610,8 @@ public void testSendDirectExchange() {
 
 基于@RabbitListener注解声明队列和交换机有哪些常见注解？
 
+* @QueueBinding
+
 - @Queue
 - @Exchange
 
@@ -3659,11 +3713,11 @@ public void listenTopicQueue2(String msg){
 
 #### 10.4.7.消息转换器
 
-之前说过，Spring会把你发送的消息序列化为字节发送给MQ，接收消息的时候，还会把字节反序列化为Java对象。
+之前说过，Spring会**把你发送的消息序列化为字节发送给MQ，接收消息的时候，还会把字节反序列化为Java对象**。
 
 ![image-20200525170410401](./imgs/image-20200525170410401.png)
 
-只不过，默认情况下Spring采用的序列化方式是JDK序列化。众所周知，JDK序列化存在下列问题：
+只不过，**默认情况下Spring采用的序列化方式是JDK序列化**。众所周知，JDK序列化存在下列问题：
 
 - 数据体积过大
 - 有安全漏洞
@@ -3695,7 +3749,7 @@ public void testSendMap() throws InterruptedException {
 
 ##### 10.4.7.2.配置JSON转换器
 
-显然，JDK序列化方式并不合适。我们希望消息体的体积更小、可读性更高，因此可以使用JSON方式来做序列化和反序列化。
+显然，JDK序列化方式并不合适。我们希望消息体的体积更小、可读性更高，因此可以**使用JSON方式来做序列化和反序列化**。
 
 在publisher和consumer两个服务中都引入依赖：
 
@@ -3709,7 +3763,7 @@ public void testSendMap() throws InterruptedException {
 
 配置消息转换器。
 
-在启动类中添加一个Bean即可：
+**在启动类中添加一个Bean即可**：配置MessageConverter覆盖默认
 
 ```java
 @Bean

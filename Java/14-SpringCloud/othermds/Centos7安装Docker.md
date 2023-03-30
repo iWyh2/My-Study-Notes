@@ -14,7 +14,7 @@ Docker CE 支持 64 位版本 CentOS 7，并且要求内核版本不低于 3.10�
 
 如果之前安装过旧版本的Docker，可以使用下面命令卸载：
 
-```
+```shell
 yum remove docker \
                   docker-client \
                   docker-client-latest \
@@ -88,7 +88,7 @@ systemctl restart docker  # 重启docker服务
 
 然后输入命令，可以查看docker版本：
 
-```
+```shell
 docker -v
 ```
 
@@ -145,6 +145,8 @@ curl -L https://raw.githubusercontent.com/docker/compose/1.29.1/contrib/completi
 echo "199.232.68.133 raw.githubusercontent.com" >> /etc/hosts
 ```
 
+实在不行就搭梯子
+
 ------
 
 
@@ -190,10 +192,18 @@ services:
     ports:
       - 8080:80
     environment:
-      - REGISTRY_TITLE=传智教育私有仓库
+      - REGISTRY_TITLE=iWyh2私有仓库
       - REGISTRY_URL=http://registry:5000
     depends_on:
       - registry
+```
+
+创建一个目录，并创建docker-compose.yml文件。复制以上内容
+
+然后用docker-compose命令部署启动
+
+```shell
+docker-compose up -d
 ```
 
 ## 3.3.配置Docker信任地址
@@ -212,5 +222,4 @@ systemctl restart docker
 ```
 
 ------
-
 
