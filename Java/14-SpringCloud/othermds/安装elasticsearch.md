@@ -4,7 +4,7 @@
 
 ## 1.1.创建网络
 
-因为我们还需要部署kibana容器，因此需要让es和kibana容器互联。这里先创建一个网络：
+因为我们还需要部署kibana容器，因此需要**让es和kibana容器互联**。这里先创建一个网络：
 
 ```sh
 docker network create es-net

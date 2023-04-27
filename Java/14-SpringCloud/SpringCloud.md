@@ -3778,7 +3778,7 @@ public MessageConverter jsonMessageConverter(){
 
 #### 11.1.1.elasticsearch的作用
 
-elasticsearch是一款非常强大的开源搜索引擎，具备非常多强大功能，可以帮助我们从海量数据中快速找到需要的内容
+elasticsearch是一款非常强大的**开源搜索引擎**，具备非常多强大功能，可以**帮助我们从海量数据中快速找到需要的内容**
 
 例如：
 
@@ -3790,7 +3790,7 @@ elasticsearch是一款非常强大的开源搜索引擎，具备非常多强大�
 
   ![image-20210720193633483](./imgs/image-20210720193633483.png)
 
-- 在百度搜索答案
+- 在谷歌搜索答案
 
   ![image-20210720193641907](./imgs/image-20210720193641907.png)
 
@@ -3800,11 +3800,11 @@ elasticsearch是一款非常强大的开源搜索引擎，具备非常多强大�
 
 #### 11.1.2.ELK技术栈
 
-elasticsearch结合kibana、Logstash、Beats，也就是elastic stack（ELK）。被广泛应用在日志数据分析、实时监控等领域：
+**elasticsearch结合kibana、Logstash、Beats**，也就是**elastic stack（ELK）**。被广泛应用在日志数据分析、实时监控等领域：
 
 ![image-20210720194008781](./imgs/image-20210720194008781.png)
 
-而elasticsearch是elastic stack的核心，负责存储、搜索、分析数据。
+而**elasticsearch是elastic stack的核心，负责存储、搜索、分析数据**。其余组件可以被替换
 
 ![image-20210720194230265](./imgs/image-20210720194230265.png)
 
@@ -3875,8 +3875,8 @@ elasticsearch底层是基于**lucene**来实现的。
 
 倒排索引中有两个非常重要的概念：
 
-- 文档（`Document`）：用来搜索的数据，其中的每一条数据就是一个文档。例如一个网页、一个商品信息
-- 词条（`Term`）：对文档数据或用户搜索数据，利用某种算法分词，得到的具备含义的词语就是词条。例如：我是中国人，就可以分为：我、是、中国人、中国、国人这样的几个词条
+- 文档（`Document`）：**用来搜索的数据，其中的每一条数据就是一个文档**。例如一个网页、一个商品信息
+- 词条（`Term`）：**对文档数据或用户搜索数据，利用某种算法分词，得到的具备含义的词语就是词条**。例如：我是中国人，就可以分为：我、是、中国人、中国、国人这样的几个词条
 
 **创建倒排索引**是对正向索引的一种特殊处理，流程如下：
 
@@ -3896,7 +3896,7 @@ elasticsearch底层是基于**lucene**来实现的。
 
 3）拿着词条在倒排索引中查找，可以得到包含词条的文档id：1、2、3。
 
-4）拿着文档id到正向索引中查找具体文档。
+4）**拿着文档id到正向索引中查找具体文档**。
 
 如图：
 
@@ -3937,7 +3937,7 @@ elasticsearch中有很多独有的概念，与mysql中略有差别，但也有�
 
 #### 11.3.1.文档和字段
 
-elasticsearch是面向**文档（Document）**存储的，可以是数据库中的一条商品数据，一个订单信息。文档数据会被序列化为json格式后存储在elasticsearch中：
+elasticsearch是面向**文档（Document）**存储的，可以是数据库中的一条商品数据，一个订单信息。**文档数据会被序列化为json格式后存储在elasticsearch中**：
 
 ![image-20210720202707797](./imgs/image-20210720202707797.png)
 
@@ -3945,7 +3945,7 @@ elasticsearch是面向**文档（Document）**存储的，可以是数据库中�
 
 #### 11.3.2.索引和映射
 
-**索引（Index）**，就是相同类型的文档的集合。
+**索引（Index）**，就是**相同类型的文档的集合**。
 
 例如：
 
@@ -3955,9 +3955,9 @@ elasticsearch是面向**文档（Document）**存储的，可以是数据库中�
 
 ![image-20210720203022172](./imgs/image-20210720203022172.png)
 
-因此，我们可以把索引当做是数据库中的表。
+因此，我们**可以把索引当做是数据库中的表**。
 
-数据库的表会有约束信息，用来定义表的结构、字段的名称、类型等信息。因此，索引库中就有**映射（mapping）**，是索引中文档的字段约束信息，类似表的结构约束。
+数据库的表会有约束信息，用来定义表的结构、字段的名称、类型等信息。因此，索引库中就有**映射（mapping）**，**是索引中文档的字段约束信息**，类似表的结构约束。
 
 #### 11.3.3.mysql与elasticsearch
 
@@ -3969,7 +3969,7 @@ elasticsearch是面向**文档（Document）**存储的，可以是数据库中�
 | Row       | Document          | 文档（Document），就是一条条的数据，类似数据库中的行（Row），文档都是JSON格式 |
 | Column    | Field             | 字段（Field），就是JSON文档中的字段，类似数据库中的列（Column） |
 | Schema    | Mapping           | Mapping（映射）是索引中文档的约束，例如字段类型约束。类似数据库的表结构（Schema） |
-| SQL       | DSL               | DSL是elasticsearch提供的JSON风格的请求语句，用来操作elasticsearch，实现CRUD |
+| SQL       | DSL               | DSL是elasticsearch提供的**JSON风格的请求语句，用来操作elasticsearch，实现CRUD**，以Http请求 |
 
 是不是说，我们学习了elasticsearch就不再需要mysql了呢？
 
@@ -4144,7 +4144,7 @@ PUT /heima
 
 **格式**：
 
-```
+```json
 GET /索引库名
 ```
 
@@ -4156,7 +4156,7 @@ GET /索引库名
 
 倒排索引结构虽然不复杂，但是一旦数据结构改变（比如改变了分词器），就需要重新创建倒排索引，这简直是灾难。因此索引库**一旦创建，无法修改mapping**。
 
-虽然无法修改mapping中已有的字段，但是却允许添加新的字段到mapping中，因为不会对倒排索引产生影响。
+虽然**无法修改mapping中已有的字段，但是却允许添加新的字段到mapping中，因为不会对倒排索引产生影响**。
 
 **语法说明**：
 
@@ -4251,7 +4251,7 @@ GET /{索引库名称}/_doc/{id}
 
 **通过kibana查看数据：**
 
-```js
+```json
 GET /heima/_doc/1
 ```
 
@@ -4289,12 +4289,12 @@ DELETE /heima/_doc/1
 
 ##### 11.6.4.1.全量修改
 
-全量修改是覆盖原来的文档，其本质是：
+全量修改是**覆盖原来的文档**，其本质是：
 
-- 根据指定的id删除文档
-- 新增一个相同id的文档
+- **根据指定的id删除文档**
+- **新增一个相同id的文档**
 
-**注意**：如果根据id删除时，id不存在，第二步的新增也会执行，也就从修改变成了新增操作了。
+**注意**：如果根据id删除时，**id不存在，第二步的新增也会执行，也就从修改变成了新增操作**了。
 
 **语法：**
 
@@ -4323,7 +4323,7 @@ PUT /heima/_doc/1
 
 ##### 11.6.4.2.增量修改
 
-增量修改是只修改指定id匹配的文档中的部分字段。
+增量修改是**只修改指定id匹配的文档中的部分字段**。
 
 **语法：**
 
@@ -4483,8 +4483,8 @@ PUT /hotel
 
 几个特殊字段说明：
 
-- location：地理坐标，里面包含精度、纬度
-- all：一个组合字段，其目的是将多字段的值 利用copy_to合并，提供给用户搜索
+- **location：地理坐标（"geo_point"），里面包含精度、纬度**
+- all：一个**组合字段，其目的是将多字段的值 利用copy_to合并，提供给用户搜索**
 
 地理坐标说明：
 
@@ -4706,7 +4706,7 @@ void testExistsHotelIndex() throws IOException {
 
 #### 11.7.4.总结
 
-JavaRestClient操作elasticsearch的流程基本类似。核心是client.indices()方法来获取索引库的操作对象。
+JavaRestClient操作elasticsearch的流程基本类似。**核心是client.indices()方法来获取索引库的操作对象**。
 
 索引库操作的基本步骤：
 
@@ -4787,9 +4787,9 @@ public class Hotel {
 
 与我们的索引库结构存在差异：
 
-- longitude和latitude需要合并为location
+- **longitude和latitude需要合并为location**
 
-因此，我们需要定义一个新的类型，与索引库结构吻合：
+因此，我们需要**定义一个新的类型，与索引库结构吻合**：
 
 ```java
 package cn.itcast.hotel.pojo;
@@ -4850,7 +4850,7 @@ POST /{索引库名}/_doc/1
 - 2）准备请求参数，也就是DSL中的JSON文档
 - 3）发送请求
 
-变化的地方在于，这里直接使用client.xxx()的API，不再需要client.indices()了。
+变化的地方在于，这里**直接使用client.xxx()的API**，不再需要client.indices()了。
 
 ##### 11.8.1.3.完整代码
 
@@ -4909,7 +4909,7 @@ GET /hotel/_doc/{id}
 
 ![image-20210720230811674](./imgs/image-20210720230811674.png)
 
-可以看到，结果是一个JSON，其中文档放在一个`_source`属性中，因此解析就是拿到`_source`，反序列化为Java对象即可。
+可以看到，**结果是一个JSON，其中文档放在一个`_source`属性中，因此解析就是拿到`_source`，反序列化为Java对象即可**。
 
 与之前类似，也是三步走：
 
@@ -4971,12 +4971,12 @@ void testDeleteDocument() throws IOException {
 - 全量修改：本质是先根据id删除，再新增
 - 增量修改：修改文档中的指定字段值
 
-在RestClient的API中，全量修改与新增的API完全一致，判断依据是ID：
+在RestClient的API中，**全量修改与新增的API完全一致**，判断依据是ID：
 
 - 如果新增时，ID已经存在，则修改
-- 如果新增时，ID不存在，则新增
+- 如果新增时，**ID不存在，则新增**
 
-这里不再赘述，我们主要关注增量修改。
+这里不再赘述，我们主要关注【**增量修改**】。
 
 代码示例如图：
 
@@ -5019,9 +5019,9 @@ void testUpdateDocument() throws IOException {
 
 ##### 11.8.5.1.语法说明
 
-批量处理BulkRequest，其本质就是将多个普通的CRUD请求组合在一起发送。
+**批量处理BulkRequest，其本质就是将多个普通的CRUD请求组合在一起发送**。
 
-其中提供了一个add方法，用来添加其他请求：
+其中**提供了一个add方法，用来添加其他请求**：
 
 ![image-20210720232105943](./imgs/image-20210720232105943.png)
 
@@ -5031,7 +5031,7 @@ void testUpdateDocument() throws IOException {
 - UpdateRequest，也就是修改
 - DeleteRequest，也就是删除
 
-因此Bulk中添加了多个IndexRequest，就是批量新增功能了。示例：
+因此**Bulk中添加了多个IndexRequest，就是批量新增功能了**。示例：
 
 ![image-20210720232431383](./imgs/image-20210720232431383.png)
 
@@ -5145,14 +5145,14 @@ GET /indexName/_search
 
 比较常用的场景包括：
 
-- 商城的输入框搜索
+- 商城的**输入框搜索**
 - 百度输入框搜索
 
 例如京东：
 
 ![image-20210721165326938](./imgs/image-20210721165326938.png)
 
-因为是拿着词条去匹配，因此参与搜索的字段也必须是可分词的text类型的字段。
+因为是**拿着词条去匹配，因此参与搜索的字段也必须是可分词的text类型的字段**。
 
 ##### 11.9.2.2.基本语法
 
@@ -5200,9 +5200,9 @@ multi_match查询示例：
 
 可以看到，两种查询结果是一样的，为什么？
 
-因为我们将brand、name、business值都利用copy_to复制到了all字段中。因此你根据三个字段搜索，和根据all字段搜索效果当然一样了。
+因为我们**将brand、name、business值都利用copy_to复制到了all字段中**。因此你**根据三个字段搜索，和根据all字段搜索效果当然一样**了。
 
-但是，搜索字段越多，对查询性能影响越大，因此建议采用copy_to，然后单字段查询的方式。
+但是，**搜索字段越多，对查询性能影响越大，因此建议采用copy_to，然后单字段查询的方式**。
 
 ##### 11.9.2.4.总结
 
@@ -5250,7 +5250,7 @@ GET /indexName/_search
 
 ##### 11.9.3.2.range查询
 
-范围查询，一般应用在对数值类型做范围过滤的时候。比如做价格范围过滤。
+范围查询，一般应用在**对数值类型做范围过滤**的时候。**比如做价格范围过滤**。
 
 基本语法：
 
@@ -5370,7 +5370,7 @@ GET /indexName/_search
 
 #### 11.9.5.复合查询
 
-复合（compound）查询：复合查询可以将其它简单查询组合起来，实现更复杂的搜索逻辑。常见的有两种：
+复合（compound）查询：复合查询可以**将其它简单查询组合起来，实现更复杂的搜索逻辑**。常见的有两种：
 
 - fuction score：算分函数查询，可以控制文档相关性算分，控制文档排名
 - bool query：布尔查询，利用逻辑关系组合多个其它的查询，实现复杂搜索
@@ -5620,7 +5620,7 @@ GET /indexName/_search
 }
 ```
 
-排序条件是一个数组，也就是可以写多个排序条件。按照声明的顺序，当第一个条件相等时，再按照第二个条件排序，以此类推
+**排序条件是一个数组，也就是可以写多个排序条件。按照声明的顺序，当第一个条件相等时，再按照第二个条件排序，以此类推**
 
 **示例**：
 
@@ -5670,7 +5670,7 @@ GET /indexName/_search
 
 #### 11.10.2.分页
 
-elasticsearch 默认情况下只返回top10的数据。而如果要查询更多数据就需要修改分页参数了。elasticsearch中通过修改from、size参数来控制要返回的分页结果：
+elasticsearch **默认情况下只返回top10的数据**。而如果要查询更多数据就需要修改分页参数了。elasticsearch中通过修改from、size参数来控制要返回的分页结果：
 
 - from：从第几个文档开始
 - size：总共查询几个文档
@@ -6050,7 +6050,6 @@ void testPageAndSort() throws IOException {
     SearchResponse response = client.search(request, RequestOptions.DEFAULT);
     // 4.解析响应
     handleResponse(response);
-
 }
 ```
 
@@ -6085,7 +6084,6 @@ void testHighlight() throws IOException {
     SearchResponse response = client.search(request, RequestOptions.DEFAULT);
     // 4.解析响应
     handleResponse(response);
-
 }
 ```
 

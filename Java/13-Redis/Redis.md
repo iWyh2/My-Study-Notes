@@ -4111,8 +4111,8 @@ Sentinel如何判断一个redis实例是否健康？
 spring:
   redis:
     sentinel:
-      master: mymaster
-      nodes:
+      master: mymaster # 指定master名称
+      nodes: # 指定redis-sentinal集群信息
         - 192.168.150.101:27001
         - 192.168.150.101:27002
         - 192.168.150.101:27003
@@ -4151,10 +4151,10 @@ public LettuceClientConfigurationBuilderCustomizer clientConfigurationBuilderCus
 
 分片集群特征：
 
-- 集群中有多个master，每个master保存不同数据
-- 每个master都可以有多个slave节点
+- 集群中有多个master，**每个master保存不同数据**
+- **每个master都可以有多个slave节点**
 - master之间通过ping监测彼此健康状态
-- 客户端请求可以访问集群任意节点，最终都会被转发到正确节点
+- 客户端**请求可以访问集群任意节点，最终都会被转发到正确节点**
 
 具体搭建流程参考课前资料[《Redis集群.md》](./Redis集群.md)：
 
