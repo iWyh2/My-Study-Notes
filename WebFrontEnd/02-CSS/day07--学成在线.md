@@ -43,6 +43,12 @@ body {
 
 ### HTML结构
 
+通栏：宽度与浏览器窗口相同的盒子
+
+标签结构：通栏 > 版心 > logo + 导航 + 搜索 + 用户
+
+由通栏header包含版心wrapper
+
 ```html
 <!-- 头部区域 -->
 <div class="header">
@@ -102,6 +108,7 @@ logo 功能：
   width: 195px;
   height: 41px;
   background-image: url(../images/logo.png);
+  /* 隐藏文字 */
   font-size: 0;
 }
 ```
@@ -244,7 +251,7 @@ logo 功能：
 
 .user img {
   margin-right: 7px;
-  /* vertical-align 行内块和行内垂直方向对齐方式 */
+  /* vertical-align 专门设置 行内块元素和行内元素 的垂直方向对齐方式 居中为middle */
   vertical-align: middle;
 }
 
