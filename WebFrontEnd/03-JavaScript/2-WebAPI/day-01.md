@@ -187,7 +187,7 @@ DOM（Document Object Model）是将整个 HTML 文档的每一个标签元素�
 
 总结：如果文本内容中包含 `html` 标签时推荐使用 `innerHTML`，否则建议使用 `innerText` 属性。
 
-##操作元素属性 
+## 操作元素属性 
 
 有3种方式可以实现对属性的修改：
 

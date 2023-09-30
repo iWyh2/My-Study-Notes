@@ -14,7 +14,7 @@
 
 ### 引入方式
 
-JavaScript 程序不能独立运行，它需要被嵌入 HTML 中，然后浏览器才能执行 JavaScript 代码。通过 `script` 标签将 JavaScript 代码引入到 HTML 中，有两种方式：
+<u>JavaScript 程序不能独立运行，它需要被嵌入 HTML 中，然后浏览器才能执行 JavaScript 代码</u>。通过 `script` 标签将 JavaScript 代码引入到 HTML 中，有两种方式：
 
 #### 内部方式
 
