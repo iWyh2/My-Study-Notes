@@ -128,7 +128,7 @@ require 关键字是引用，后面是包，最后v1.11.1 是引用的版本号
 
 #### 问题二： 依赖包的版本是怎么控制的？
 
-在上一个问题里，可以看到最终下载在$GOPATH/pkg/mod 下的包中最后会有一个版本号 v1.0.5，也就是说，$GOPATH/pkg/mod里可以保存相同包的不同版本。
+在上一个问题里，可以看到最终下载在GOPATH/pkg/mod 下的包中最后会有一个版本号 v1.0.5，也就是说，GOPATH/pkg/mod里可以保存相同包的不同版本。
 
 版本是在go.mod中指定的。如果，在go.mod中没有指定，go命令会自动下载代码中的依赖的最新版本，本例就是自动下载最新的版本。如果，在go.mod用require语句指定包和版本 ，go命令会根据指定的路径和版本下载包，
 指定版本时可以用latest，这样它会自动下载指定包的最新版本；
@@ -137,7 +137,7 @@ require 关键字是引用，后面是包，最后v1.11.1 是引用的版本号
 
 可以。但是go会根据GO111MODULE的值而采取不同的处理方式，默认情况下，GO111MODULE=auto 自动模式
 
-1.auto 自动模式下，项目在$GOPATH/src里会使用$GOPATH/src的依赖包，在$GOPATH/src外，就使用go.mod 里 require的包
+1.auto 自动模式下，项目在GOPATH/src里会使用GOPATH/src的依赖包，在$GOPATH/src外，就使用go.mod 里 require的包
 
 2.on 开启模式，1.12后，无论在$GOPATH/src里还是在外面，都会使用go.mod 里 require的包
 
