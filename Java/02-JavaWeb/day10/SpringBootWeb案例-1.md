@@ -1204,19 +1204,19 @@ public interface DeptMapper {
 
 > 查询第1页数据的SQL语句是：
 >
-> ```
+> ```sql
 > select * from emp  limit 0,10;
 > ```
 >
 > 查询第2页数据的SQL语句是：
 >
-> ```
+> ```sql
 > select * from emp  limit 10,10;
 > ```
 >
 > 查询第3页的数据的SQL语句是：
 >
-> ```
+> ```sql
 > select * from emp  limit 20,10;
 > ```
 >

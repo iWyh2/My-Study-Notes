@@ -2177,7 +2177,7 @@ export default {
 
 浏览器打开如图所示：
 
-![1669381520004](1669381520004.png)
+![1669381520004](assets/1669381520004.png)
 
 可以发现我们还缺少一个时间，所以可以从elementUI官网找到日期组件，如下图所示：
 
@@ -2475,8 +2475,8 @@ export default {
 
 然后**重启项目**，来到我们的EmpView.vue组件页面，通过import命令导入axios，代码如下：
 
-~~~
-import axios  'axios';
+~~~js
+import axios from 'axios';
 ~~~
 
 那么我们什么时候发送axios请求呢？页面加载完成，自动加载，所以可以使用之前的mounted钩子函数，并且我们需要将得到的员工数据要展示到表格，所以数据需要赋值给数据模型tableData，所以我们编写如下代码：

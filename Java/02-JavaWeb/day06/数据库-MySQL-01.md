@@ -112,6 +112,17 @@ MySQL官方提供了两个版本：
 
 
 
+选择MySQL服务为手动 则每次开机之后 如果需要使用MYSQL服务需要手动启动MySQL服务：
+
+```bash
+net start mysql  # 启动mysql服务
+net stop mysql   # 停止mysql服务
+```
+
+这样可以避免开机自启 且尽量避免深夜十二点不会弹窗
+
+
+
 #### 1.1.3 连接
 
 MySQL服务器启动完毕后，然后再使用如下指令，来连接MySQL服务器：
