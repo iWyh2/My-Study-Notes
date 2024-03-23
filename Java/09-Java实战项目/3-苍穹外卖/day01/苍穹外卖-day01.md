@@ -1147,9 +1147,6 @@ public class EmployeeController {
     @PostMapping("/login")
     @ApiOperation(value = "员工登录")
     public Result<EmployeeLoginVO> login(@RequestBody EmployeeLoginDTO employeeLoginDTO) 	{
-        //..............
-
-        
     }
 
     /**
@@ -1170,4 +1167,3 @@ public class EmployeeController {
 启动服务：访问http://localhost:8080/doc.html
 
 <img src="assets/image-20221107175649468.png" alt="image-20221107175649468" style="zoom:50%;" />
-
